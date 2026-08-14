@@ -40,6 +40,14 @@ def main(argv: list[str] | None = None) -> int:
         default="Explain the difference between a process and a thread.",
     )
 
+    advise_parser = subparsers.add_parser(
+        "advise", help="recommend a measured configuration under SLO constraints"
+    )
+    advise_parser.add_argument("--exp-dir", required=True)
+    advise_parser.add_argument("--usd-per-hour", type=float, default=None)
+    advise_parser.add_argument("--slo-ttft-ms", type=float, default=None)
+    advise_parser.add_argument("--min-tok-s", type=float, default=None)
+
     args = parser.parse_args(argv)
 
     if args.command == "sweep":
@@ -67,6 +75,24 @@ def main(argv: list[str] | None = None) -> int:
             prompt=args.prompt,
         )
         print(json.dumps(summary, indent=2))
+        return 0
+
+    if args.command == "advise":
+        from .advisor import load_rows, recommend, render
+
+        rows = load_rows(Path(args.exp_dir))
+        best = recommend(
+            rows, slo_ttft_ms=args.slo_ttft_ms, min_tok_s=args.min_tok_s
+        )
+        print(
+            render(
+                rows,
+                best,
+                usd_per_hour=args.usd_per_hour,
+                slo_ttft_ms=args.slo_ttft_ms,
+                min_tok_s=args.min_tok_s,
+            )
+        )
         return 0
 
     parser.print_help()
