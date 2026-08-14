@@ -1,0 +1,527 @@
+{
+  "qwen2.5-1.5b-instruct-q4_0_t1": {
+    "condition": {
+      "model_name": "qwen2.5-1.5b-instruct-q4_0",
+      "gguf_path": "/home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_0.gguf",
+      "quant": "Q4_0",
+      "threads": 1
+    },
+    "summary": {
+      "n": 5,
+      "ttft_ms": {
+        "mean": 62.685660400074994,
+        "stdev": 0.48236376436136397,
+        "min": 61.860460999923816,
+        "max": 63.02928300010535
+      },
+      "gen_tok_s": {
+        "mean": 17.037492800065785,
+        "stdev": 0.03402025051762878,
+        "min": 17.000896215405405,
+        "max": 17.082156516784345
+      },
+      "e2e_s": {
+        "mean": 5.521252691600057,
+        "stdev": 0.010538840750397266,
+        "min": 5.507282259000021,
+        "max": 5.532160310000108
+      },
+      "output_tokens": {
+        "mean": 93.0,
+        "stdev": 0.0,
+        "min": 93.0,
+        "max": 93.0
+      }
+    }
+  },
+  "qwen2.5-1.5b-instruct-q4_0_t2": {
+    "condition": {
+      "model_name": "qwen2.5-1.5b-instruct-q4_0",
+      "gguf_path": "/home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_0.gguf",
+      "quant": "Q4_0",
+      "threads": 2
+    },
+    "summary": {
+      "n": 5,
+      "ttft_ms": {
+        "mean": 36.731440799940174,
+        "stdev": 0.46746077510316386,
+        "min": 36.22414899973592,
+        "max": 37.41474999969796
+      },
+      "gen_tok_s": {
+        "mean": 30.54155190284491,
+        "stdev": 0.0359465491354858,
+        "min": 30.477700187582712,
+        "max": 30.5622541645025
+      },
+      "e2e_s": {
+        "mean": 3.081766726399837,
+        "stdev": 0.003337197466626992,
+        "min": 3.079349476999596,
+        "max": 3.087635490000139
+      },
+      "output_tokens": {
+        "mean": 93.0,
+        "stdev": 0.0,
+        "min": 93.0,
+        "max": 93.0
+      }
+    }
+  },
+  "qwen2.5-1.5b-instruct-q4_0_t4": {
+    "condition": {
+      "model_name": "qwen2.5-1.5b-instruct-q4_0",
+      "gguf_path": "/home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_0.gguf",
+      "quant": "Q4_0",
+      "threads": 4
+    },
+    "summary": {
+      "n": 5,
+      "ttft_ms": {
+        "mean": 21.847681200142688,
+        "stdev": 0.47706766347438473,
+        "min": 21.503159000076266,
+        "max": 22.66436700028862
+      },
+      "gen_tok_s": {
+        "mean": 55.44839713210248,
+        "stdev": 0.1596270121344881,
+        "min": 55.26035303308596,
+        "max": 55.665662268774646
+      },
+      "e2e_s": {
+        "mean": 1.6990939352001078,
+        "stdev": 0.005149467907605123,
+        "min": 1.6921919860001253,
+        "max": 1.7047909640000398
+      },
+      "output_tokens": {
+        "mean": 93.0,
+        "stdev": 0.0,
+        "min": 93.0,
+        "max": 93.0
+      }
+    }
+  },
+  "qwen2.5-1.5b-instruct-q4_0_t8": {
+    "condition": {
+      "model_name": "qwen2.5-1.5b-instruct-q4_0",
+      "gguf_path": "/home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_0.gguf",
+      "quant": "Q4_0",
+      "threads": 8
+    },
+    "summary": {
+      "n": 5,
+      "ttft_ms": {
+        "mean": 14.787193000211118,
+        "stdev": 0.4519863107760788,
+        "min": 14.354736000314006,
+        "max": 15.534671999830607
+      },
+      "gen_tok_s": {
+        "mean": 92.83805069940755,
+        "stdev": 0.3268994184336321,
+        "min": 92.44033496727374,
+        "max": 93.18584500362554
+      },
+      "e2e_s": {
+        "mean": 1.016541555800177,
+        "stdev": 0.0033748579538672527,
+        "min": 1.012598335000348,
+        "max": 1.0205984520002858
+      },
+      "output_tokens": {
+        "mean": 93.0,
+        "stdev": 0.0,
+        "min": 93.0,
+        "max": 93.0
+      }
+    }
+  },
+  "qwen2.5-1.5b-instruct-q4_0_t16": {
+    "condition": {
+      "model_name": "qwen2.5-1.5b-instruct-q4_0",
+      "gguf_path": "/home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_0.gguf",
+      "quant": "Q4_0",
+      "threads": 16
+    },
+    "summary": {
+      "n": 5,
+      "ttft_ms": {
+        "mean": 23.18002219990376,
+        "stdev": 0.3481478663079749,
+        "min": 22.87738899985925,
+        "max": 23.78094899995631
+      },
+      "gen_tok_s": {
+        "mean": 52.410440451873185,
+        "stdev": 0.015247237856298173,
+        "min": 52.38566105790523,
+        "max": 52.424824163498535
+      },
+      "e2e_s": {
+        "mean": 1.7976357508000547,
+        "stdev": 0.0006923139120695394,
+        "min": 1.7970202830001654,
+        "max": 1.7984145890000036
+      },
+      "output_tokens": {
+        "mean": 93.0,
+        "stdev": 0.0,
+        "min": 93.0,
+        "max": 93.0
+      }
+    }
+  },
+  "qwen2.5-1.5b-instruct-q4_k_m_t1": {
+    "condition": {
+      "model_name": "qwen2.5-1.5b-instruct-q4_k_m",
+      "gguf_path": "/home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_k_m.gguf",
+      "quant": "Q4_K_M",
+      "threads": 1
+    },
+    "summary": {
+      "n": 5,
+      "ttft_ms": {
+        "mean": 71.78727359987533,
+        "stdev": 0.5347136476496887,
+        "min": 70.9123169999657,
+        "max": 72.23228899965761
+      },
+      "gen_tok_s": {
+        "mean": 14.742658597543763,
+        "stdev": 0.02079902200043088,
+        "min": 14.71009786580431,
+        "max": 14.765180498246735
+      },
+      "e2e_s": {
+        "mean": 7.533139957999902,
+        "stdev": 0.01070339427668726,
+        "min": 7.520872039000096,
+        "max": 7.549506622000081
+      },
+      "output_tokens": {
+        "mean": 110.0,
+        "stdev": 0.0,
+        "min": 110.0,
+        "max": 110.0
+      }
+    }
+  },
+  "qwen2.5-1.5b-instruct-q4_k_m_t2": {
+    "condition": {
+      "model_name": "qwen2.5-1.5b-instruct-q4_k_m",
+      "gguf_path": "/home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_k_m.gguf",
+      "quant": "Q4_K_M",
+      "threads": 2
+    },
+    "summary": {
+      "n": 5,
+      "ttft_ms": {
+        "mean": 40.39321819991528,
+        "stdev": 0.42073296351735656,
+        "min": 40.046373999757634,
+        "max": 41.08597699996608
+      },
+      "gen_tok_s": {
+        "mean": 27.410265504991447,
+        "stdev": 0.046055755902782075,
+        "min": 27.357762751003925,
+        "max": 27.460609108667914
+      },
+      "e2e_s": {
+        "mean": 4.053497302399864,
+        "stdev": 0.006455626487410443,
+        "min": 4.046195302999877,
+        "max": 4.060842993999813
+      },
+      "output_tokens": {
+        "mean": 110.0,
+        "stdev": 0.0,
+        "min": 110.0,
+        "max": 110.0
+      }
+    }
+  },
+  "qwen2.5-1.5b-instruct-q4_k_m_t4": {
+    "condition": {
+      "model_name": "qwen2.5-1.5b-instruct-q4_k_m",
+      "gguf_path": "/home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_k_m.gguf",
+      "quant": "Q4_K_M",
+      "threads": 4
+    },
+    "summary": {
+      "n": 5,
+      "ttft_ms": {
+        "mean": 24.201021200042305,
+        "stdev": 0.22458855626105317,
+        "min": 23.89481499994872,
+        "max": 24.503697999989527
+      },
+      "gen_tok_s": {
+        "mean": 48.788771976592955,
+        "stdev": 0.13667830864699396,
+        "min": 48.61852840476147,
+        "max": 48.9420968223676
+      },
+      "e2e_s": {
+        "mean": 2.2788322890000017,
+        "stdev": 0.006491799592096365,
+        "min": 2.27144870300026,
+        "max": 2.2870156169997244
+      },
+      "output_tokens": {
+        "mean": 110.0,
+        "stdev": 0.0,
+        "min": 110.0,
+        "max": 110.0
+      }
+    }
+  },
+  "qwen2.5-1.5b-instruct-q4_k_m_t8": {
+    "condition": {
+      "model_name": "qwen2.5-1.5b-instruct-q4_k_m",
+      "gguf_path": "/home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_k_m.gguf",
+      "quant": "Q4_K_M",
+      "threads": 8
+    },
+    "summary": {
+      "n": 5,
+      "ttft_ms": {
+        "mean": 16.173742999944807,
+        "stdev": 0.447545443597776,
+        "min": 15.93057999980374,
+        "max": 16.970746999959374
+      },
+      "gen_tok_s": {
+        "mean": 81.5440714864695,
+        "stdev": 0.6881316968734388,
+        "min": 80.97405182755395,
+        "max": 82.6093799615011
+      },
+      "e2e_s": {
+        "mean": 1.3652139529999658,
+        "stdev": 0.01151876880468508,
+        "min": 1.3474984969998332,
+        "max": 1.3745530480000525
+      },
+      "output_tokens": {
+        "mean": 110.0,
+        "stdev": 0.0,
+        "min": 110.0,
+        "max": 110.0
+      }
+    }
+  },
+  "qwen2.5-1.5b-instruct-q4_k_m_t16": {
+    "condition": {
+      "model_name": "qwen2.5-1.5b-instruct-q4_k_m",
+      "gguf_path": "/home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_k_m.gguf",
+      "quant": "Q4_K_M",
+      "threads": 16
+    },
+    "summary": {
+      "n": 5,
+      "ttft_ms": {
+        "mean": 23.73410740010513,
+        "stdev": 0.37126860293697356,
+        "min": 23.44743899993773,
+        "max": 24.375453000175185
+      },
+      "gen_tok_s": {
+        "mean": 50.67031919429498,
+        "stdev": 0.11859011078022909,
+        "min": 50.52432713649078,
+        "max": 50.78634963663489
+      },
+      "e2e_s": {
+        "mean": 2.1946397566000995,
+        "stdev": 0.004956788671889603,
+        "min": 2.1896110180000505,
+        "max": 2.2008827770000607
+      },
+      "output_tokens": {
+        "mean": 110.0,
+        "stdev": 0.0,
+        "min": 110.0,
+        "max": 110.0
+      }
+    }
+  },
+  "qwen2.5-1.5b-instruct-q8_0_t1": {
+    "condition": {
+      "model_name": "qwen2.5-1.5b-instruct-q8_0",
+      "gguf_path": "/home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q8_0.gguf",
+      "quant": "Q8_0",
+      "threads": 1
+    },
+    "summary": {
+      "n": 5,
+      "ttft_ms": {
+        "mean": 76.34384280008817,
+        "stdev": 0.4341004125080473,
+        "min": 75.80184900007225,
+        "max": 76.99903999991875
+      },
+      "gen_tok_s": {
+        "mean": 13.866315373162212,
+        "stdev": 0.022067875572680678,
+        "min": 13.842018524727504,
+        "max": 13.888522651197228
+      },
+      "e2e_s": {
+        "mean": 7.215962264600057,
+        "stdev": 0.011559203196536211,
+        "min": 7.20459099899972,
+        "max": 7.229135112000222
+      },
+      "output_tokens": {
+        "mean": 99.0,
+        "stdev": 0.0,
+        "min": 99.0,
+        "max": 99.0
+      }
+    }
+  },
+  "qwen2.5-1.5b-instruct-q8_0_t2": {
+    "condition": {
+      "model_name": "qwen2.5-1.5b-instruct-q8_0",
+      "gguf_path": "/home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q8_0.gguf",
+      "quant": "Q8_0",
+      "threads": 2
+    },
+    "summary": {
+      "n": 5,
+      "ttft_ms": {
+        "mean": 41.894564000085666,
+        "stdev": 0.3324792510037727,
+        "min": 41.470980000212876,
+        "max": 42.387633999624086
+      },
+      "gen_tok_s": {
+        "mean": 26.27783818366627,
+        "stdev": 0.03543744019810687,
+        "min": 26.23095357047852,
+        "max": 26.322038886858582
+      },
+      "e2e_s": {
+        "mean": 3.8093332455999187,
+        "stdev": 0.0048725388336670365,
+        "min": 3.8034944549999636,
+        "max": 3.8159644349998416
+      },
+      "output_tokens": {
+        "mean": 99.0,
+        "stdev": 0.0,
+        "min": 99.0,
+        "max": 99.0
+      }
+    }
+  },
+  "qwen2.5-1.5b-instruct-q8_0_t4": {
+    "condition": {
+      "model_name": "qwen2.5-1.5b-instruct-q8_0",
+      "gguf_path": "/home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q8_0.gguf",
+      "quant": "Q8_0",
+      "threads": 4
+    },
+    "summary": {
+      "n": 5,
+      "ttft_ms": {
+        "mean": 24.764199599940184,
+        "stdev": 0.24609525037395025,
+        "min": 24.565994000113278,
+        "max": 25.167319000047428
+      },
+      "gen_tok_s": {
+        "mean": 47.92662075197761,
+        "stdev": 0.05021776502911935,
+        "min": 47.889225059373075,
+        "max": 48.0100251217442
+      },
+      "e2e_s": {
+        "mean": 2.0904238541998894,
+        "stdev": 0.002194290974119315,
+        "min": 2.0867101049998382,
+        "max": 2.091889660999641
+      },
+      "output_tokens": {
+        "mean": 99.0,
+        "stdev": 0.0,
+        "min": 99.0,
+        "max": 99.0
+      }
+    }
+  },
+  "qwen2.5-1.5b-instruct-q8_0_t8": {
+    "condition": {
+      "model_name": "qwen2.5-1.5b-instruct-q8_0",
+      "gguf_path": "/home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q8_0.gguf",
+      "quant": "Q8_0",
+      "threads": 8
+    },
+    "summary": {
+      "n": 5,
+      "ttft_ms": {
+        "mean": 16.979819600146584,
+        "stdev": 1.1872288951804335,
+        "min": 16.22298399979627,
+        "max": 19.05010400014362
+      },
+      "gen_tok_s": {
+        "mean": 79.59061867021512,
+        "stdev": 0.17770597910107036,
+        "min": 79.40587013636896,
+        "max": 79.85929605148033
+      },
+      "e2e_s": {
+        "mean": 1.2608499640001356,
+        "stdev": 0.0019070894655683912,
+        "min": 1.2587304530002257,
+        "max": 1.2629821949999496
+      },
+      "output_tokens": {
+        "mean": 99.0,
+        "stdev": 0.0,
+        "min": 99.0,
+        "max": 99.0
+      }
+    }
+  },
+  "qwen2.5-1.5b-instruct-q8_0_t16": {
+    "condition": {
+      "model_name": "qwen2.5-1.5b-instruct-q8_0",
+      "gguf_path": "/home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q8_0.gguf",
+      "quant": "Q8_0",
+      "threads": 16
+    },
+    "summary": {
+      "n": 5,
+      "ttft_ms": {
+        "mean": 24.720041399814363,
+        "stdev": 0.28862938909990205,
+        "min": 24.507525999979407,
+        "max": 25.22420399964176
+      },
+      "gen_tok_s": {
+        "mean": 48.38867147733646,
+        "stdev": 0.007505387845873495,
+        "min": 48.37684367339487,
+        "max": 48.39661988543353
+      },
+      "e2e_s": {
+        "mean": 2.070653498199772,
+        "stdev": 0.0004981080712575125,
+        "min": 2.0701049299996157,
+        "max": 2.071245990999614
+      },
+      "output_tokens": {
+        "mean": 99.0,
+        "stdev": 0.0,
+        "min": 99.0,
+        "max": 99.0
+      }
+    }
+  }
+}

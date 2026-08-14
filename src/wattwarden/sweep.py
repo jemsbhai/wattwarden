@@ -230,7 +230,11 @@ def run_sweep(
     repetitions = int(sweep_cfg["repetitions"])
     results: dict[str, Any] = {}
 
-    for condition in conditions:
+    for index, condition in enumerate(conditions, start=1):
+        print(
+            f"[{index}/{len(conditions)}] {condition.key}: starting server",
+            flush=True,
+        )
         log_path = exp_dir / "raw" / f"server_{condition.key}.log"
         with ServerManager(
             server_bin,
@@ -268,6 +272,8 @@ def run_sweep(
             "condition": asdict(condition),
             "summary": summarize(measurements),
         }
+        gen = results[condition.key]["summary"]["gen_tok_s"]["mean"]
+        print(f"[{index}/{len(conditions)}] {condition.key}: done, tg {gen:.1f} tok/s", flush=True)
 
     _write_json(exp_dir / "results.json", results)
     return results

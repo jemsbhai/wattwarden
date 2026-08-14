@@ -1,0 +1,10 @@
+{
+  "platform": "Linux-6.12.101+deb13-cloud-arm64-aarch64-with-glibc2.41",
+  "machine": "aarch64",
+  "python": "3.13.5",
+  "cpu_count": 16,
+  "hostname": "wattwarden",
+  "captured_utc": "2026-08-14T22:03:53Z",
+  "server_bin": "/home/jemsbhai/wwbench/llama.cpp/build-generic/bin/llama-server",
+  "server_version": "version: 0.1.0-dev (build 10436, commit 6fed9f6ff)\nbuilt with GNU 14.2.0 for Linux aarch64"
+}

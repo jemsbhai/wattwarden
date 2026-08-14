@@ -1,0 +1,67 @@
+source_config_sha256: 2cb5773e35166ed02f41c0047d2be3c61be853048f8f3ff74a19ff23ec57348d
+exp_id: exp_002_axion_sweep
+prompt: Explain the difference between a process and a thread in one paragraph.
+n_predict: 128
+repetitions: 5
+seed: 42
+conditions:
+- model_name: qwen2.5-1.5b-instruct-q4_0
+  gguf_path: /home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_0.gguf
+  quant: Q4_0
+  threads: 1
+- model_name: qwen2.5-1.5b-instruct-q4_0
+  gguf_path: /home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_0.gguf
+  quant: Q4_0
+  threads: 2
+- model_name: qwen2.5-1.5b-instruct-q4_0
+  gguf_path: /home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_0.gguf
+  quant: Q4_0
+  threads: 4
+- model_name: qwen2.5-1.5b-instruct-q4_0
+  gguf_path: /home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_0.gguf
+  quant: Q4_0
+  threads: 8
+- model_name: qwen2.5-1.5b-instruct-q4_0
+  gguf_path: /home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_0.gguf
+  quant: Q4_0
+  threads: 16
+- model_name: qwen2.5-1.5b-instruct-q4_k_m
+  gguf_path: /home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_k_m.gguf
+  quant: Q4_K_M
+  threads: 1
+- model_name: qwen2.5-1.5b-instruct-q4_k_m
+  gguf_path: /home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_k_m.gguf
+  quant: Q4_K_M
+  threads: 2
+- model_name: qwen2.5-1.5b-instruct-q4_k_m
+  gguf_path: /home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_k_m.gguf
+  quant: Q4_K_M
+  threads: 4
+- model_name: qwen2.5-1.5b-instruct-q4_k_m
+  gguf_path: /home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_k_m.gguf
+  quant: Q4_K_M
+  threads: 8
+- model_name: qwen2.5-1.5b-instruct-q4_k_m
+  gguf_path: /home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q4_k_m.gguf
+  quant: Q4_K_M
+  threads: 16
+- model_name: qwen2.5-1.5b-instruct-q8_0
+  gguf_path: /home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q8_0.gguf
+  quant: Q8_0
+  threads: 1
+- model_name: qwen2.5-1.5b-instruct-q8_0
+  gguf_path: /home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q8_0.gguf
+  quant: Q8_0
+  threads: 2
+- model_name: qwen2.5-1.5b-instruct-q8_0
+  gguf_path: /home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q8_0.gguf
+  quant: Q8_0
+  threads: 4
+- model_name: qwen2.5-1.5b-instruct-q8_0
+  gguf_path: /home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q8_0.gguf
+  quant: Q8_0
+  threads: 8
+- model_name: qwen2.5-1.5b-instruct-q8_0
+  gguf_path: /home/jemsbhai/wattwarden/models/qwen2.5-1.5b-instruct-q8_0.gguf
+  quant: Q8_0
+  threads: 16

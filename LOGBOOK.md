@@ -160,3 +160,100 @@ Pending.
 Instance booted GCP's default image: Debian 13 (kernel 6.12 arm64), not
 Ubuntu 24.04 as declared. No protocol impact (identical apt packages and
 toolchain); environment.txt records the actual OS. Hostname: wattwarden.
+
+---
+
+## EXP-001: Results (completed 2026-08-14, Axion c4a-standard-16, Debian 13)
+
+llama.cpp commit 6fed9f6ff (build 10436); qwen2.5-1.5b-instruct-q4_0
+(model_size 1,060,276,736 B; gguf n_params 1,777,088,000: output head
+stored untied). 5 invocations per cell; unit of analysis is the
+per-invocation avg_ts.
+
+| build | threads | pp tok/s (mean, sd) | tg tok/s (mean, sd) |
+|---|---|---|---|
+| generic  | 8  | 311.1, 0.18 | 93.7, 0.42 |
+| generic  | 16 | 494.1, 1.25 | 140.9, 1.89 |
+| kleidiai | 8  | 315.8, 0.07 | 87.6, 0.69 |
+| kleidiai | 16 | 500.1, 2.05 | 120.1, 5.50 |
+
+KleidiAI/generic ratios: pp 1.015x (t8), 1.012x (t16); tg 0.935x (t8),
+0.853x (t16).
+
+### Observations
+- Hypothesis REFUTED for token generation: the KleidiAI build is 6.5%
+  slower at t8 and 14.7% slower at t16. Prefill gain is ~1.3%, barely
+  above noise.
+- Variance signature: kleidiai t16 tg sd (5.50) is 3x to 13x every
+  other cell, suggesting scheduling or threadpool interaction at full
+  core count.
+- Implied weight-streaming bandwidth (tg x model bytes): ~99 GB/s at
+  t8, ~149 GB/s at t16 (generic). Thread doubling yields 1.50x tg:
+  partial bandwidth saturation, consistent with the EXP-002 hypothesis.
+- The GGUF stores the output head untied (n_params 1.777B vs 1.543B
+  architectural): decode bandwidth pricing should use measured
+  model_size bytes, not architectural parameter counts.
+
+### Interpretation
+The generic aarch64 path in this llama.cpp commit already runtime
+repacks Q4_0 and uses i8mm/dotprod kernels; KleidiAI substitution
+helps batched GEMM (prefill) marginally and hurts batch-1 GEMV
+(decode) on this silicon at this commit. The correct production flag
+on this host, for this workload, is KleidiAI OFF. Scope limits: one
+model, one quant, one commit, one machine; no claim beyond that cell.
+Consequence recorded for EXP-002 below.
+
+---
+
+## Addendum (2026-08-14, after EXP-001, before EXP-002 execution)
+
+EXP-002 pre-registration said "KleidiAI build only." Informed by the
+EXP-001 refutation, the sweep executes on the generic build (the
+faster decode configuration on this host). This is a documented
+sequential-design decision, not a post-hoc metric choice: the
+dependent variables and grid are unchanged.
+
+---
+
+## EXP-002: Results (completed 2026-08-14, Axion c4a-standard-16, generic build)
+
+Server-measured via wattwarden sweep (client-side clock), 5 reps + 1
+warmup per condition, prompt_index 0, n_predict 128, seed 42.
+
+tg tok/s (mean; sd in raw results.json):
+
+| quant | t1 | t2 | t4 | t8 | t16 |
+|---|---|---|---|---|---|
+| Q4_0   | 17.0 | 30.5 | 55.4 | 92.8 | 52.4 |
+| Q4_K_M | 14.7 | 27.4 | 48.8 | 81.5 | 50.7 |
+| Q8_0   | 13.9 | 26.3 | 47.9 | 79.6 | 48.4 |
+
+Best serving config on this host: Q4_0 t8, 92.8 tok/s, TTFT 14.8 ms.
+
+### Observations
+- t16 regresses ~40% below t8 for all quants, while EXP-001's
+  llama-bench measured 140.9 tok/s at t16 on the same binary, model,
+  and machine. The t8 cells cross-validate within 1% of llama-bench
+  (92.8 vs 93.7), so the divergence is specific to the full-core
+  condition, not the method.
+- Byte-throughput ceiling ~150 GB/s appears consistently: Q8_0 t8
+  streams 150.8 GB/s; llama-bench Q4_0 t16 streamed 149 GB/s. Q4_0 t8
+  (99 GB/s) is below the ceiling, hence its continued scaling in the
+  bench setting.
+- Hypothesis check: saturation-below-16-threads confirmed in the bench
+  setting via EXP-001 (1.50x from t8 to t16); in the serving setting
+  the t16 condition is dominated by a different effect (below).
+- Output lengths differ per quant at fixed seed (93, 110, 99 tokens):
+  expected, throughput normalizes per token.
+
+### Interpretation
+The sweep co-locates llama-server and the measuring client on the same
+16 vCPUs, and ggml generation threads busy-spin. At t16 no cores
+remain for the HTTP path, the client, or the OS; scheduling
+interference collapses throughput. This is a real deployment finding,
+not an artifact to discard: on an N-core Arm host serving over HTTP
+with any co-located work, cap generation threads below N. The advisor
+must treat t equal to core count as contaminated in co-located mode.
+Follow-up registered as EXP-004 (remote-client separation) when a
+second host is available; scope of the present numbers is co-located
+serving, stated as such.
