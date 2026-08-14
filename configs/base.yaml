@@ -17,15 +17,32 @@ models:
     quant: Q8_0
 
 sweep:
-  threads: [1, 2, 4]
+  # Requested thread conditions; the driver caps this list at the host's
+  # core count at runtime and records the effective list in the frozen
+  # config.
+  threads: [1, 2, 4, 8, 16]
   n_predict: 128
   repetitions: 5
   seed: 42
   prompts_file: configs/prompts.txt
 
-instance:
-  provider: oracle
-  shape: A1.Flex
-  ocpus: 4
-  memory_gb: 24
-  arch: neoverse-n1
+hosts:
+  primary_endpoint:
+    provider: oracle
+    shape: VM.Standard.A1.Flex
+    ocpus: 2
+    memory_gb: 12
+    arch: neoverse-n1
+    role: always-on judging endpoint (Always Free tier, post June 2026 limits)
+  sweep_host:
+    provider: hetzner
+    shape: CAX41
+    vcpus: 16
+    memory_gb: 32
+    arch: neoverse-n1
+    role: full thread-scaling sweep, hourly billing
+  v2_host:
+    provider: gcp
+    shape: c4a-standard-4
+    arch: neoverse-v2
+    role: cross-generation validation session

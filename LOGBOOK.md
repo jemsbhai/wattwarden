@@ -60,3 +60,20 @@ Pending.
 
 ### Artifacts
 - experiments/exp_001_kleidiai_baseline/ (created at execution)
+
+---
+
+## Addendum (2026-08-11, before any execution), re: EXP-001
+
+Oracle halved the Always Free Ampere A1 allowance to 2 OCPUs and 12 GB
+effective 2026-06-15 (official docs updated; no announcement). EXP-001 was
+planned against the old 4 OCPU / 24 GB assumption and has not yet run.
+Protocol amendments, recorded here rather than by editing the entry:
+
+- Instance for EXP-001 becomes the Always Free A1 at 2 OCPUs / 12 GB; the
+  fixed thread condition changes from 4 to 2.
+- The full thread-scaling sweep (1 through 16 threads) moves to a paid
+  hourly Ampere Altra host (Hetzner CAX41 class, same Neoverse N1
+  microarchitecture) and will be registered as its own experiment.
+- The free A1 instance's role shifts to always-on judging endpoint.
+- hosts section of configs/base.yaml updated accordingly on this date.
