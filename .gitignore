@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+test_env/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# Secrets and local config
+.env
+.env.local
+*.key
+*.pem
+*secrets*
+
+# Models and large artifacts (never commit weights)
+models/
+*.gguf
+
+# Experiment outputs (results and configs are committed selectively by hand)
+experiments/*/checkpoints/
+experiments/*/logs/
+experiments/*/raw/
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Dashboard (Node)
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.env*
