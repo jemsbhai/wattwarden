@@ -77,3 +77,19 @@ Protocol amendments, recorded here rather than by editing the entry:
   microarchitecture) and will be registered as its own experiment.
 - The free A1 instance's role shifts to always-on judging endpoint.
 - hosts section of configs/base.yaml updated accordingly on this date.
+
+---
+
+## Addendum (2026-08-11, before any execution), re: EXP-001 sweep host
+
+Hetzner CAX capacity checked at provisioning time: out of stock in every
+region that offers the type. Sweep host changes from Hetzner CAX41
+(Neoverse N1) to GCP Axion c4a-standard-16 (Neoverse V2) on trial
+credits, with c4a-standard-8 as the quota fallback. Consequences:
+
+- The many-core sweep and the KleidiAI ON/OFF ablation now run on
+  Neoverse V2, where i8mm and SVE2 kernel paths are available; N1 has
+  dotprod only, so the ablation contrast is expected to differ by
+  microarchitecture and both will be reported separately.
+- The N1 data points come from the Always Free A1 endpoint (2 OCPUs).
+- configs/base.yaml hosts section updated accordingly on this date.

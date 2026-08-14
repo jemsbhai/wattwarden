@@ -25,6 +25,8 @@ sweep:
   repetitions: 5
   seed: 42
   prompts_file: configs/prompts.txt
+  prompt_index: 0
+  port: 8091
 
 hosts:
   primary_endpoint:
@@ -35,14 +37,15 @@ hosts:
     arch: neoverse-n1
     role: always-on judging endpoint (Always Free tier, post June 2026 limits)
   sweep_host:
-    provider: hetzner
-    shape: CAX41
-    vcpus: 16
-    memory_gb: 32
-    arch: neoverse-n1
-    role: full thread-scaling sweep, hourly billing
-  v2_host:
     provider: gcp
-    shape: c4a-standard-4
+    shape: c4a-standard-16
+    fallback_shape: c4a-standard-8
+    vcpus: 16
+    memory_gb: 64
     arch: neoverse-v2
-    role: cross-generation validation session
+    role: full thread-scaling sweep and KleidiAI ablation, trial credits
+  ci_host:
+    provider: github-actions
+    shape: ubuntu-24.04-arm
+    arch: neoverse-n2
+    role: free Arm CI for public repos, incidental N2 data point

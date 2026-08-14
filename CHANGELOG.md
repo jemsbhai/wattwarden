@@ -6,6 +6,21 @@ Format follows Keep a Changelog; versioning follows SemVer.
 ## [Unreleased]
 
 ### Added
+- Sweep orchestrator (sweep.py): launches one cold llama-server per
+  condition, walks the models x threads grid with warmup exclusion,
+  enforces append-only experiment directories, and writes frozen
+  configs, environment snapshots, raw per-request records, and summary
+  results. probe subcommand for quick measurements against an already
+  running endpoint; CLI grows sweep and probe subcommands.
+- Sweep host pivot: GCP Axion c4a-standard-16 (Neoverse V2) replaces
+  Hetzner CAX41 after a full CAX stock-out across regions; logbook
+  addendum records the change and its ablation consequences.
+- Measurement core (bench.py): streamed chat completions against any
+  OpenAI-compatible endpoint with client-side TTFT and throughput
+  measurement, SSE parsing that fails loudly on malformed data, token
+  accounting with server-usage override and chunk-count fallback, and
+  per-metric summary statistics. Fixed prompt set for deterministic
+  benchmark inputs (configs/prompts.txt).
 - TomlCpuMeter (meter.py): pollard 1.5.1 meter adapter with post-call
   charging in predicted joules, pre-dispatch estimation for
   Budget(extra={"joules": ...}) admission control, optional strict mode
@@ -16,5 +31,8 @@ Format follows Keep a Changelog; versioning follows SemVer.
   counts, prefill and decode phase split, DRAM traffic model, Neoverse N1
   and V2 placeholder profiles with explicit uncalibrated flags, Qwen2.5
   0.5B and 1.5B specs verified against published parameter counts.
+- Hosts plan reflecting the June 2026 Oracle free tier reduction: free A1
+  (2 OCPU / 12 GB) as always-on endpoint, Hetzner CAX41 as sweep host,
+  GCP Axion C4A as the Neoverse V2 validation session.
 - Repository scaffold: package skeleton, test skeleton, configs, logbook,
   findings, prose scanner, license, environment template.

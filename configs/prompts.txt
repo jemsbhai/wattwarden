@@ -1,0 +1,8 @@
+Explain the difference between a process and a thread in one paragraph.
+Summarize the water cycle for a ten year old in three sentences.
+List five practical uses of a hash table and one sentence on why each works.
+Write a short shell one-liner description: what does grep -r "TODO" src do?
+Describe how DNS resolution works, from typing a URL to receiving an IP address.
+Give three tradeoffs between SQL and document databases for a small web app.
+Explain what quantization does to a neural network and why it saves memory.
+Outline the steps to safely merge a feature branch into main with git.
