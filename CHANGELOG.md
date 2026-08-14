@@ -6,6 +6,14 @@ Format follows Keep a Changelog; versioning follows SemVer.
 ## [Unreleased]
 
 ### Added
+- EXP-003a time-structure calibration (calibrate.py): closed-form
+  fits of decode time against model bytes (effective bandwidth per
+  thread level) and against inverse threads (per-quant floor vs the
+  observed ceiling), pre-registered predictions in the logbook,
+  outputs under experiments/exp_003_time_fit/.
+- Submission charts (scripts/make_charts.py): five figures generated
+  from committed artifacts with cited constants for logbook-only
+  numbers; smoke-tested.
 - Governed-agent finale (examples/governed_agent.py): a pollard run on
   a live Arm llama-server with TomlCpuMeter charging predicted joules
   per call and Budget(extra={"joules": ...}) refusing an oversized

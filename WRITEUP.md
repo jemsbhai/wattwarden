@@ -50,9 +50,15 @@ Three findings judges can reproduce from our scripts:
    refuted two mechanisms (client co-location, EXP-004; one-spare-core,
    EXP-005), bounded the onset to t9..t11, and recorded the cause as
    unexplained. The operational rule stands and the advisor enforces it.
-3. The platform's decode byte-throughput ceiling is ~150 GB/s, reached by
-   Q8_0 at t8 and by Q4_0 only in the pure-bench setting, matching the
-   TOML model's bandwidth-priced decode structure.
+3. Decode time on this host obeys a clean law: per quant, time per
+   token = A + B/t with R^2 of 0.999 to 1.0000 (EXP-003a fit of the
+   sweep data). The serial floor A is quant-INDEPENDENT (~4 to 4.6
+   ms): per-token overhead, not weight streaming, sets the fast
+   limit. The highest observed streaming rate is ~150 GB/s, an
+   approached upper range consistent with the TOML model's
+   bandwidth-priced decode but not yet a demonstrated wall. Our own
+   pre-registered cross-quant bandwidth probe was refuted as
+   ill-conditioned, and that refutation is in the logbook too.
 
 ## What the tool does
 

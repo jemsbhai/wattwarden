@@ -396,3 +396,76 @@ blocks chronologically, adds the previously unfiled EXP-004 condition
 B and the EXP-005 t12 locator, and marks EXP-002's interpretation as
 partially superseded by EXP-004. No measured value, hypothesis,
 refutation, or dated statement was altered or removed.
+
+---
+
+## EXP-003a: Time-structure calibration of the TOML decode model
+
+**Date:** planned 2026-08-14, laptop analysis of committed artifacts
+**Researcher:** Muntaser Syed
+**Type:** computational (analysis of EXP-001/EXP-002 data; no new runs)
+**Status:** planned
+
+### Hypothesis
+The TOML decode decomposition holds on Axion V2: at a fixed thread
+count, decode time per token is approximately linear in model bytes
+across quantizations (bandwidth term), with a positive intercept
+(compute and overhead term). Predictions, made before fitting:
+
+- At t8, the fitted slope inverts to an effective bandwidth in the
+  130 to 170 GB/s range, consistent with the ~150 GB/s ceiling
+  observed directly.
+- Intercepts are positive at every t, and the Q4_K_M cell sits above
+  the two-point line through Q4_0 and Q8_0 (its kernels cost more per
+  byte), so the three-quant linear fit will show visible residual at
+  t >= 4. If instead residuals are near zero everywhere, the
+  quant-dependent compute claim is refuted.
+- At t1 the compute term dominates and the bandwidth estimate is
+  poorly identified (wide spread across t levels is expected there).
+
+### Method
+For each thread level t in {1,2,4,8,16}: ordinary least squares of
+time-per-token (1/tg, from EXP-002 means) against model bytes (GGUF
+file sizes) across the three quants; report slope, intercept,
+implied GB/s, and R^2. Secondary per-quant view across t. Pure
+Python closed-form regression; script scripts/fit_exp003.py; outputs
+to experiments/exp_003_time_fit/.
+
+### Scope
+Time structure only. Energy constants remain uncalibrated until
+EXP-003b anchors them against a host with power telemetry (Apple
+Silicon powermetrics planned). The meter's calibrated flag does not
+flip in EXP-003a.
+
+### Results / Observations / Interpretation
+Completed 2026-08-14. Fit outputs: experiments/exp_003_time_fit/.
+
+Prediction outcomes:
+1. REFUTED as posed: the per-thread cross-quant regression is not a
+   usable bandwidth instrument. Effective GB/s swings 87 to 720
+   non-monotonically with R^2 0.41 to 0.87. Cause: ill conditioning
+   (Q4_0 and Q4_K_M bytes differ by only 51 MB) plus quant-dependent
+   kernel cost dominating the byte signal.
+2. CONFIRMED: Q4_K_M sits above the fitted line at every thread
+   level (+4.41 ms at t1 shrinking to +0.30 ms at t16), the exact
+   signature of costlier per-byte kernels predicted in advance.
+3. CONFIRMED trivially; identification is poor at every t in this
+   view, not only t1.
+
+Post-hoc discovery, labeled exploratory: within each quant, decode
+time per token obeys time = A + B/t over t in {1,2,4,8} with R^2
+0.9990 to 1.0000. Floors A are quant-INDEPENDENT (4.44, 4.55, 3.95
+ms) rather than proportional to model bytes: the serial component is
+per-token overhead, not weight streaming. All byte and MAC work lives
+in the parallel term B/t (54.7, 63.4, 68.2 ms). Q8_0 at t8 lies on
+its own 1/t line (fit 12.47 ms vs measured 12.56 ms), so the data
+through t8 do not require a binding bandwidth ceiling; the ~150 GB/s
+figure is an approached upper range, consistent with a ceiling but
+not demonstrated as one below t16. Findings and write-up wording
+corrected accordingly on this date. Extrapolating the law to t16
+predicts 127 tok/s for Q4_0 against the measured bench 140.9,
+consistent with mild super-1/t scaling entering at high t.
+
+Consequence for the TOML meter: on this host the calibrated TIME
+model is A plus B_q/t; energy anchoring remains EXP-003b. The
+calibrated flag stays False.

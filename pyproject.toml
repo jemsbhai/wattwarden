@@ -29,7 +29,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.6"]
+dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.6", "matplotlib>=3.8"]
 
 [project.scripts]
 wattwarden = "wattwarden.cli:main"

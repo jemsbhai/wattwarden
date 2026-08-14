@@ -43,9 +43,12 @@ test (EXP-005) is oversubscription by the server's own serving threads
 on a fully loaded core set; llama-bench, with exactly N compute
 threads and no serving stack, scales to t16 on the same binary.
 Practical rule, already quantified: keep generation threads below the
-core count when serving. The platform's byte-throughput ceiling is
-~150 GB/s, reached by Q8_0 at t8 and by Q4_0 only in the pure-bench
-setting at t16.
+core count when serving. On byte throughput: ~150 GB/s is the highest
+observed weight-streaming rate (Q8_0 t8 served; Q4_0 t16 bench), an
+approached upper range. EXP-003a shows the data through t8 fit a
+quant-independent serial floor plus parallel term (time = A + B/t,
+R^2 >= 0.999) with no ceiling term required, so 150 GB/s is
+consistent with a ceiling but not demonstrated as one below t16.
 
 ---
 
@@ -92,6 +95,17 @@ oversubscription, registered as EXP-005.
 hypothesis refuted. Collapse onset bounded to t9..t14; mechanism
 recorded as unexplained; operational rule (t <= 8 serving on this
 host) unaffected.
+
+### 2026-08-14 -- EXP-003a: decode time law found; bandwidth probe refuted
+
+**Key result:** per quant, decode time per token = A + B/t with R^2
+0.999 to 1.0000 (t in 1..8). Floors A are quant-independent (4.0 to
+4.6 ms): the serial component is per-token overhead, not weight
+streaming. The cross-quant bytes regression is unidentifiable (R^2
+0.41 to 0.87; pre-registered prediction refuted); Q4_K_M's positive
+residual at every t confirms costlier kernels. The ~150 GB/s figure
+downgrades from ceiling to approached upper range. Fit artifacts:
+experiments/exp_003_time_fit/.
 
 ### 2026-08-14 -- Kernel identity: repacked Q4_0 GEMV owns decode
 
