@@ -6,6 +6,11 @@ Format follows Keep a Changelog; versioning follows SemVer.
 ## [Unreleased]
 
 ### Added
+- Governed-agent finale (examples/governed_agent.py): a pollard run on
+  a live Arm llama-server with TomlCpuMeter charging predicted joules
+  per call and Budget(extra={"joules": ...}) refusing an oversized
+  request before dispatch. Integration-tested against installed
+  pollard 1.5.1 with a fake model function, including the veto path.
 - Sweep orchestrator (sweep.py): launches one cold llama-server per
   condition, walks the models x threads grid with warmup exclusion,
   enforces append-only experiment directories, and writes frozen

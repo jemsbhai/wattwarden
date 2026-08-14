@@ -27,6 +27,7 @@ models/
 experiments/*/checkpoints/
 experiments/*/logs/
 experiments/*/raw/
+runs/
 
 # Editors and OS
 .idea/
