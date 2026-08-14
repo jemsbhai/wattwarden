@@ -151,7 +151,7 @@ GCP c4a-standard-16, Ubuntu 24.04 arm64; llama.cpp SHA from
 environment.txt; wattwarden at the current local commit.
 
 ### Results / Observations / Interpretation
-Pending.
+Recorded in the completed-results block below (2026-08-14).
 
 ---
 
@@ -246,7 +246,7 @@ Best serving config on this host: Q4_0 t8, 92.8 tok/s, TTFT 14.8 ms.
 - Output lengths differ per quant at fixed seed (93, 110, 99 tokens):
   expected, throughput normalizes per token.
 
-### Interpretation
+### Interpretation (superseded in part by EXP-004; see below)
 The sweep co-locates llama-server and the measuring client on the same
 16 vCPUs, and ggml generation threads busy-spin. At t16 no cores
 remain for the HTTP path, the client, or the OS; scheduling
@@ -257,3 +257,142 @@ must treat t equal to core count as contaminated in co-located mode.
 Follow-up registered as EXP-004 (remote-client separation) when a
 second host is available; scope of the present numbers is co-located
 serving, stated as such.
+
+---
+
+## Addendum (2026-08-14): kernel identity attested by sampling profile
+
+perf record, 999 Hz, 43,490 samples over llama-bench Q4_0 t8 decode
+(-p 0 -n 128 -r 4), generic build:
+
+- 60.37% self time in ggml_gemv_q4_0_4x8_q8_0 (libggml-cpu.so.0.20.0),
+  invoked via ggml::cpu::repack::tensor_traits<block_q4_0, 8, 4>::
+  compute_forward.
+- Confirms the EXP-001 interpretation directly: the generic build's
+  runtime-repack path with an arch-dispatched Q4_0 GEMV dominates
+  decode. Single-kernel weight streaming also matches the TOML model's
+  bandwidth-priced decode structure.
+- Tool note: Arm Performix code_hotspots (runs 5594a28de43e,
+  1df83bc0482a) attested the silicon (Neoverse-V2, MIDR 0x410fd4f1)
+  and produced exportable artifacts, but could not symbolize the
+  dlopen'd libggml-cpu module, leaving the dominant frame anonymous
+  (53.8%) with sample bleed onto one-time init symbols. Documented as
+  a limitation for this workload shape; memory_access recipe is
+  unavailable on this VM (no SPE exposure from the hypervisor).
+
+---
+
+## EXP-004: Remote-client separation test of the t16 collapse
+
+**Date:** planned 2026-08-14, executes in the same Axion session
+**Researcher:** Muntaser Syed
+**Type:** computational
+**Status:** completed
+
+### Hypothesis
+The EXP-002 t16 collapse is caused by client-server co-location on a
+fully subscribed core set. Prediction: with the measuring client moved
+off-box (laptop, via SSH tunnel), served tg at t16 recovers
+substantially above the co-located 52.4 tok/s, toward the pure-bench
+140.9; served tg at t8 stays approximately 93 tok/s (control),
+because at t8 free cores existed either way.
+
+### Independent Variables
+- Client location: co-located (EXP-002 data) vs remote (this run)
+- Threads: 16 (treatment), 8 (control)
+
+### Dependent Variables / Metrics
+- gen_tok_s via wattwarden probe, 5 reps. TTFT is recorded but carries
+  one WAN round trip and SSH overhead; it is not compared against
+  co-located TTFT.
+
+### Control Conditions
+- Same binary (generic), model (Q4_0), port, context, prompt, seed,
+  n_predict as EXP-002; server foregrounded with no other load.
+
+### Protocol
+1. Box: llama-server -t 16. Laptop: ssh -L tunnel; wattwarden probe,
+   5 reps.
+2. Box: restart llama-server -t 8. Laptop: probe again.
+3. Record both summaries here.
+
+### Results / Observations / Interpretation
+Condition A completed 2026-08-14 (t16, remote client via SSH tunnel):
+gen_tok_s 52.14 (sd 0.025, n 5) vs co-located 52.4. TTFT 120.6 ms
+carries the WAN plus tunnel round trip, excluded from comparison as
+pre-registered. Protocol deviation, immaterial to tg: the probe used
+its default prompt (near-identical to sweep prompt_index 0) and ran
+the full 128 tokens.
+
+Condition B completed 2026-08-14 (t8, remote client, control):
+gen_tok_s 93.24 (sd 0.240, n 5) vs co-located 92.8. Control passes:
+the tunnel and remote client do not distort tg.
+
+HYPOTHESIS REFUTED: client location does not move served t16
+throughput. The collapse is server-side. Revised candidate mechanism:
+llama-server's own serving threads (HTTP accept loop plus a per-token
+SSE writer) oversubscribe a fully loaded core set of busy-spinning
+generation workers, forcing a context switch per token; llama-bench
+runs exactly 16 compute threads and nothing else. Tested next as
+EXP-005.
+
+---
+
+## EXP-005: One spare core for the serving machinery
+
+**Date:** planned 2026-08-14, same session
+**Researcher:** Muntaser Syed
+**Type:** computational
+**Status:** completed
+
+### Hypothesis
+If the t16 collapse is serving-thread oversubscription, then
+llama-server with 15 generation threads (one core left for HTTP and
+the SSE writer) recovers most of the gap: prediction tg > 120 tok/s
+(remote client, same protocol as EXP-004). If tg stays near 52, the
+mechanism is something else and will be reported as unexplained.
+
+### Variables and Controls
+- IV: generation threads 15 vs 16 (remote client held fixed).
+- DV: gen_tok_s, 5 reps, wattwarden probe via tunnel.
+- Controls: same binary, model, port, context; EXP-004 t16 remote is
+  the direct baseline.
+
+### Results / Observations / Interpretation
+Completed 2026-08-14. t15 remote: gen_tok_s 53.49 (sd 0.051, n 5) vs
+t16 remote 52.14. HYPOTHESIS REFUTED: one spare core recovers ~2.6%,
+not the predicted majority of the gap. Per the pre-registered
+alternative, the mechanism is recorded as UNEXPLAINED.
+
+State of knowledge after EXP-002/004/005: served decode is
+client-location-invariant and scales cleanly through t8 (93.2 remote,
+92.8 co-located, within 1% of bench); a server-side collapse onsets
+somewhere in t9..t14 (t15 and t16 both ~52-54); the identical
+llama_decode path in llama-bench scales to t16 (140.9). Untested
+conjecture, labeled as such: per-token threadpool sleep/wake storms in
+the server's decode-sample-write loop, absent from bench's tight
+loop, with wake cost scaling in thread count. Not pursued further in
+this session; the operational rule (threads at or below 8 on this
+host when serving) is empirical and does not depend on the mechanism.
+
+---
+
+## Addendum (2026-08-14), re: EXP-005: exploratory cliff locator
+
+Post-hoc single point, labeled exploratory (not pre-registered): t12
+remote gen_tok_s 57.18 (sd 0.065, n 5). Served-throughput scan now
+reads t8 93.2, t12 57.2, t15 53.5, t16 52.1: collapse onset is
+between t9 and t11, with gentle decline beyond. Served throughput
+peaks at or near t8 on this host.
+
+---
+
+## Editorial addendum (2026-08-14): logbook re-sequencing
+
+Earlier today, file edits anchored on the ambiguous line "Pending."
+spliced EXP-004 condition-A results and the EXP-005 entry into the
+middle of the EXP-002 registration. This revision re-sequences the
+blocks chronologically, adds the previously unfiled EXP-004 condition
+B and the EXP-005 t12 locator, and marks EXP-002's interpretation as
+partially superseded by EXP-004. No measured value, hypothesis,
+refutation, or dated statement was altered or removed.

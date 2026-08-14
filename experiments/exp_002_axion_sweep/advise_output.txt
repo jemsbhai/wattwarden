@@ -1,0 +1,21 @@
+| config | quant | threads | tok/s | TTFT ms | $/Mtok | note |
+|---|---|---|---|---|---|---|
+| qwen2.5-1.5b-instruct-q4_0_t8 | Q4_0 | 8 | 92.8 | 14.8 | 1.94 | RECOMMENDED |
+| qwen2.5-1.5b-instruct-q4_k_m_t8 | Q4_K_M | 8 | 81.5 | 16.2 | 2.21 |  |
+| qwen2.5-1.5b-instruct-q8_0_t8 | Q8_0 | 8 | 79.6 | 17.0 | 2.27 |  |
+| qwen2.5-1.5b-instruct-q4_0_t4 | Q4_0 | 4 | 55.4 | 21.8 | 3.26 |  |
+| qwen2.5-1.5b-instruct-q4_0_t16 | Q4_0 | 16 | 52.4 | 23.2 | 3.45 | co-located full-core: excluded (EXP-002) |
+| qwen2.5-1.5b-instruct-q4_k_m_t16 | Q4_K_M | 16 | 50.7 | 23.7 | 3.56 | co-located full-core: excluded (EXP-002) |
+| qwen2.5-1.5b-instruct-q4_k_m_t4 | Q4_K_M | 4 | 48.8 | 24.2 | 3.70 |  |
+| qwen2.5-1.5b-instruct-q8_0_t16 | Q8_0 | 16 | 48.4 | 24.7 | 3.73 | co-located full-core: excluded (EXP-002) |
+| qwen2.5-1.5b-instruct-q8_0_t4 | Q8_0 | 4 | 47.9 | 24.8 | 3.77 |  |
+| qwen2.5-1.5b-instruct-q4_0_t2 | Q4_0 | 2 | 30.5 | 36.7 | 5.91 |  |
+| qwen2.5-1.5b-instruct-q4_k_m_t2 | Q4_K_M | 2 | 27.4 | 40.4 | 6.59 |  |
+| qwen2.5-1.5b-instruct-q8_0_t2 | Q8_0 | 2 | 26.3 | 41.9 | 6.87 |  |
+| qwen2.5-1.5b-instruct-q4_0_t1 | Q4_0 | 1 | 17.0 | 62.7 | 10.60 |  |
+| qwen2.5-1.5b-instruct-q4_k_m_t1 | Q4_K_M | 1 | 14.7 | 71.8 | 12.25 |  |
+| qwen2.5-1.5b-instruct-q8_0_t1 | Q8_0 | 1 | 13.9 | 76.3 | 13.02 |  |
+
+constraints: TTFT <= 50 ms
+recommended: qwen2.5-1.5b-instruct-q4_0_t8 at 92.8 tok/s, TTFT 14.8 ms, 1.94 $/Mtok
+all performance figures measured (client-side clock); energy columns arrive with profile calibration (EXP-003)

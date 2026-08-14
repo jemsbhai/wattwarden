@@ -1,5 +1,18 @@
 # Findings
 
+## Gains Ledger (all measured, all one-line configuration changes)
+
+| optimization | baseline | optimized | gain | evidence |
+|---|---|---|---|---|
+| Serving thread count (t16 to t8) | 52.4 tok/s | 92.8 tok/s | +77% throughput | EXP-002, EXP-004 |
+| Cost at recommended config | 3.45 $/Mtok (t16) | 1.94 $/Mtok (t8) | -44% cost | EXP-002 + advisor |
+| Build flag for decode (KleidiAI to generic, t16 bench) | 120.1 tok/s | 140.9 tok/s | +17% | EXP-001 |
+| Quantization for throughput (Q8_0 to Q4_0, t8 served) | 79.6 tok/s | 92.8 tok/s | +17%, quality tradeoff unmeasured here | EXP-002 |
+| Model bytes on disk and in memory (Q8_0 to Q4_0) | 1.89 GB | 1.07 GB | -44% size | GGUF file sizes |
+
+Every row is a decision wattwarden's sweep and advisor surface
+automatically; none required code changes to llama.cpp.
+
 ## Curated Summary
 
 On Google Axion (Neoverse V2, c4a-standard-16, Debian 13), llama.cpp
@@ -20,14 +33,18 @@ output head untied (1.777B stored parameters vs 1.543B architectural),
 so bandwidth-priced decode energy must use measured model bytes
 (model_size), not architectural parameter counts.
 
-Serving configuration on this host (EXP-002): best is Q4_0 at 8
-threads, 92.8 tok/s with 14.8 ms TTFT. Setting generation threads to
+Serving configuration on this host (EXP-002, EXP-004): best is Q4_0 at
+8 threads, 92.8 tok/s with 14.8 ms TTFT. Setting generation threads to
 the full core count collapses served throughput ~40% below t8 across
-all quants, because ggml threads busy-spin and starve the HTTP path
-and any co-located work; llama-bench (no serving stack) scales to t16
-on the same binary. Practical rule, quantified: cap generation threads
-below core count when serving. The platform's byte-throughput ceiling
-is ~150 GB/s, reached by Q8_0 at t8 and by Q4_0 only in the pure-bench
+all quants, and EXP-004 shows the collapse is server-side: it
+reproduces identically with a remote client (52.1 vs 52.4 tok/s), so
+client co-location is not the cause. The candidate mechanism under
+test (EXP-005) is oversubscription by the server's own serving threads
+on a fully loaded core set; llama-bench, with exactly N compute
+threads and no serving stack, scales to t16 on the same binary.
+Practical rule, already quantified: keep generation threads below the
+core count when serving. The platform's byte-throughput ceiling is
+~150 GB/s, reached by Q8_0 at t8 and by Q4_0 only in the pure-bench
 setting at t16.
 
 ---
@@ -61,3 +78,26 @@ serving path. t8 cross-validates llama-bench within 1%.
 Details: 3 quants x threads {1,2,4,8,16}, 5 reps + warmup, client-side
 clock. Q8_0 t8 byte throughput 150.8 GB/s marks the platform ceiling.
 Raw: experiments/exp_002_axion_sweep/.
+
+### 2026-08-14 -- EXP-004: t16 collapse is server-side, not the client
+
+**Key result:** remote client through an SSH tunnel, t16: 52.14 tok/s
+(sd 0.025) vs co-located 52.4. Hypothesis (client co-location causes
+the collapse) refuted. Revised mechanism, serving-thread
+oversubscription, registered as EXP-005.
+
+### 2026-08-14 -- EXP-005: one spare core does not fix it; unexplained
+
+**Key result:** t15 remote 53.49 tok/s vs t16 remote 52.14: spare-core
+hypothesis refuted. Collapse onset bounded to t9..t14; mechanism
+recorded as unexplained; operational rule (t <= 8 serving on this
+host) unaffected.
+
+### 2026-08-14 -- Kernel identity: repacked Q4_0 GEMV owns decode
+
+**Key result:** perf sampling (999 Hz, 43,490 samples) attributes
+60.37% of Q4_0 t8 decode self time to ggml_gemv_q4_0_4x8_q8_0 via the
+ggml cpu repack path. The generic build's optimization is measured,
+not assumed; single-kernel weight streaming matches bandwidth-priced
+decode. Performix could not symbolize the dlopen'd backend (documented
+limitation); it attested the silicon (Neoverse-V2, MIDR 0x410fd4f1).

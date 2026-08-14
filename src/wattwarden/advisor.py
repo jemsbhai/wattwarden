@@ -7,9 +7,10 @@ instance rate, and recommends the best measured configuration.
 Honesty rules encoded here:
 - Every number in the table is measured (client-side clock) except
   dollars, which are arithmetic on the supplied hourly rate.
-- Conditions whose thread count reaches the host core count are flagged
-  as contaminated in co-located serving mode (EXP-002 finding) and are
-  excluded from the recommendation while remaining visible in the table.
+- Conditions whose thread count reaches the host core count are
+  excluded from the recommendation: full-core serving collapses
+  throughput regardless of client location (EXP-002, EXP-004). They
+  remain visible in the table with the reason attached.
 - Energy columns are absent until profile calibration (EXP-003) lands;
   the advisor never prints an uncalibrated joule figure.
 """
@@ -113,7 +114,7 @@ def render(
             cells += f" {row.usd_per_mtok(usd_per_hour):.2f} |"
         note = ""
         if row.contaminated:
-            note = "co-located full-core: excluded (EXP-002)"
+            note = "full-core serving: excluded (EXP-002, EXP-004)"
         elif best is not None and row.key == best.key:
             note = "RECOMMENDED"
         cells += f" {note} |"

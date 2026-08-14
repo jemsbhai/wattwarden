@@ -81,7 +81,7 @@ def test_render_marks_recommendation_and_exclusion(exp_dir):
     best = recommend(rows, slo_ttft_ms=50.0)
     text = render(rows, best, usd_per_hour=0.65, slo_ttft_ms=50.0)
     assert "RECOMMENDED" in text
-    assert "co-located full-core: excluded" in text
+    assert "full-core serving: excluded" in text
     assert "$/Mtok" in text
     assert "measured" in text
 
