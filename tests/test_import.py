@@ -9,4 +9,6 @@ def test_version_present():
 
 
 def test_cli_main_runs():
-    assert main() == 0
+    # Explicit empty argv: main() with None would inherit the test
+    # runner's own sys.argv (this exact bug shipped once).
+    assert main([]) == 0
