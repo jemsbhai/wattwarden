@@ -126,9 +126,11 @@ README; the sweep, advisor, and governed agent each run with one command.
 
 ## What's next
 
-EXP-003 calibrates the energy profile against hosts with real power
-telemetry (Apple Silicon powermetrics first), flipping predicted joules
-from relative to absolute. pollard 1.5.1 already ships an MCP registry
+EXP-003b calibrates the energy profile against a host with real power
+telemetry: an Android Arm SoC using the battery energy counter APIs
+(the same instrument the planned battery governor uses), flipping
+predicted joules from relative to absolute; the time-structure half,
+EXP-003a, is already completed and committed. pollard 1.5.1 already ships an MCP registry
 bridge (registry_from_mcp), so the governed agent's next milestone is
 discovering jsonld-ex's 53-tool MCP server under the same joule budget.
 An always-free Ampere A1 endpoint (Neoverse N1) extends the cross-silicon

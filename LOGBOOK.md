@@ -469,3 +469,14 @@ consistent with mild super-1/t scaling entering at high t.
 Consequence for the TOML meter: on this host the calibrated TIME
 model is A plus B_q/t; energy anchoring remains EXP-003b. The
 calibrated flag stays False.
+
+---
+
+## Addendum (2026-08-14), re: EXP-003b instrument
+
+The EXP-003a scope named Apple Silicon powermetrics as the planned
+EXP-003b instrument. Corrected: no Mac exists in this lab. EXP-003b
+will use an Android Arm SoC via the battery energy counter APIs
+(BatteryManager ENERGY_COUNTER, or current times voltage where the
+counter is absent), the same instrument the mobile entry's battery
+governor uses. Device model to be recorded at registration time.
