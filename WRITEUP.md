@@ -17,10 +17,11 @@ advisor that recommends serving configurations from measured data, and the
 capability no measured-energy meter can have: a joule budget that refuses an
 oversized model call BEFORE it dispatches.
 
-One afternoon of use on a Google Axion c4a-standard-16 produced five
-measured optimizations, two refuted assumptions the ecosystem holds, and a
-reproducible finding about llama-server that we could not find documented
-anywhere.
+One afternoon on a Google Axion c4a-standard-16 and one evening on a
+Pixel 8 Pro produced six logged experiments, five refuted hypotheses
+(three of them our own, documented in public), the meter's first
+calibrated on-device energy profile, and a reproducible finding about
+llama-server that we could not find documented anywhere.
 
 ## Measured results (every number traces to a logged experiment)
 
@@ -59,6 +60,17 @@ Three findings judges can reproduce from our scripts:
    bandwidth-priced decode but not yet a demonstrated wall. Our own
    pre-registered cross-quant bandwidth probe was refuted as
    ill-conditioned, and that refutation is in the logbook too.
+4. Energy, measured on-device (EXP-003b): battery telemetry on a
+   Pixel 8 Pro (Tensor G3) calibrated the meter's first profile at
+   88.3 pJ per DRAM byte and 84.6 pJ per MAC, system level, with
+   Qwen2.5-1.5B Q4_0 costing about 0.2 J per generated token. Energy
+   per token RISES with every added core cluster (0.19 at t1, 0.21 at
+   t4, 0.28 at t8): on big.LITTLE silicon the fastest configuration
+   is not the cheapest, the mirror image of the server story. The
+   experiment's own coverage audit caught an estimator undercount
+   before results were filed, rescuing one pre-registered prediction
+   from a false refutation; a third prediction was refuted and stands
+   recorded as such.
 
 ## What the tool does
 
@@ -116,7 +128,7 @@ selection).
 
 ## Reproducibility and DX
 
-Everything is a public MIT repo: 60 passing tests, an append-only
+Everything is a public MIT repo: 80 passing tests, an append-only
 experimental logbook with pre-registered hypotheses, a findings file, a
 banned-vocabulary prose gate, provisioning and experiment scripts that
 took a fresh Arm VM to first data in under twenty minutes, and raw

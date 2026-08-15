@@ -39,3 +39,6 @@ Thumbs.db
 dashboard/node_modules/
 dashboard/dist/
 dashboard/.env*
+
+exp003b_part*/
+exp003b_raw.tgz
