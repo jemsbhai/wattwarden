@@ -3,7 +3,9 @@
 # One continuous 1 Hz sampler for the whole session plus an events file
 # marking phase boundaries; analysis aligns windows offline.
 # Cells: Q4_0 x t{1,4,8} and Q8_0 x t{4,8}; 5 reps each; llama-bench
-# -p 0 -n 128 -r 1 so tokens per invocation are exactly 128.
+# -p 0 -n 512 -r 1 so tokens per invocation are exactly 512 (amended
+# from 128 before execution: decode must dominate the model-load
+# energy inside the measurement window; see LOGBOOK addendum).
 # Refuses to start unless the battery reports discharging.
 # Usage: bash exp003b_run.sh
 set -euo pipefail
@@ -48,7 +50,7 @@ run_cell() {
     temp_a="$(temp_now)"
     echo "== ${quant} t${threads} rep ${rep}/${REPS} (temp ${temp_a}C) =="
     t_start=$(now_ms)
-    "${BENCH}" -m "${model}" -t "${threads}" -p 0 -n 128 -r 1 -o json \
+    "${BENCH}" -m "${model}" -t "${threads}" -p 0 -n 512 -r 1 -o json \
       > "${OUT}/${quant}_t${threads}_rep${rep}.json"
     t_end=$(now_ms)
     temp_b="$(temp_now)"

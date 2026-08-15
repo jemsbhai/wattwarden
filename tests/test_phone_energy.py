@@ -1,6 +1,7 @@
 """Tests for the EXP-003b analyzer: locked unit rules, exact
 integration on synthetic telemetry, baseline netting, protocol-flag
-accounting, fit recovery, and the append-only guard."""
+accounting, fit recovery including the decode-time static term, and
+the append-only guard."""
 
 import json
 from pathlib import Path
@@ -52,8 +53,13 @@ def test_charging_samples_are_counted_not_hidden():
     assert charging == 1
 
 
+def _bench_json(model_size, avg_ts):
+    return json.dumps([{"model_size": model_size, "avg_ts": avg_ts}])
+
+
 def _write_synthetic_session(raw: Path):
-    """Baseline 1 W for 0..10 s; three cells at 3, 5, and 7 W."""
+    """Baseline 1 W for 0..10 s; three cells at 3, 5, and 7 W with
+    distinct bench decode rates so the 3-parameter fit has rank."""
     raw.mkdir(parents=True)
     rows = ["epoch_ms,api_current,api_voltage_mV,api_temp_C,api_status,api_pct,sys_current_now,sys_voltage_now"]
 
@@ -75,56 +81,77 @@ def _write_synthetic_session(raw: Path):
     ]
     (raw / "events.csv").write_text("\n".join(events) + "\n", encoding="utf-8")
     (raw / "Q4_0_t1_rep1.json").write_text(
-        json.dumps([{"model_size": 1_066_227_232}]), encoding="utf-8"
+        _bench_json(1_066_227_232, 3.0), encoding="utf-8"
     )
     (raw / "Q4_0_t4_rep1.json").write_text(
-        json.dumps([{"model_size": 1_066_227_232}]), encoding="utf-8"
+        _bench_json(1_066_227_232, 10.0), encoding="utf-8"
     )
     (raw / "Q8_0_t4_rep1.json").write_text(
-        json.dumps([{"model_size": 1_894_532_128}]), encoding="utf-8"
+        _bench_json(1_894_532_128, 6.0), encoding="utf-8"
     )
 
 
-def test_baseline_netting_and_tokens(tmp_path):
+def test_baseline_netting_tokens_and_bench_time(tmp_path):
     _write_synthetic_session(tmp_path / "raw")
     samples = load_samples(tmp_path / "raw" / "samples.csv")
     events = load_events(tmp_path / "raw" / "events.csv")
     analysis = analyze_cells(samples, events, tmp_path / "raw")
     assert analysis["baseline_power_w"] == pytest.approx(1.0)
     cell = analysis["cells"]["Q4_0_t1"]
-    # gross 3 W x 10 s = 30 J, net 20 J, over 128 tokens
+    # gross 3 W x 10 s = 30 J, net 20 J, over the invocation's tokens
     assert cell["j_per_token_mean"] == pytest.approx(20.0 / TOKENS_PER_INVOCATION)
     assert cell["n"] == 1
     assert cell["threads"] == 1
     assert cell["flags"] == []
+    assert cell["s_per_token_bench"] == pytest.approx(1.0 / 3.0)
     assert analysis["cells"]["Q8_0_t4"]["bytes_per_token"] > cell["bytes_per_token"]
 
 
-def test_fit_recovers_synthetic_constants():
-    e_mac = 2e-12
-    e_byte = 50e-12
-    cells = {}
-    for name, macs, byts in (
-        ("a", 1e9, 1e9),
-        ("b", 2e9, 1e9),
-        ("c", 1e9, 2e9),
-        ("d", 3e9, 2e9),
-    ):
-        cells[name] = {
-            "macs_per_token": macs,
-            "bytes_per_token": byts,
-            "j_per_token_mean": e_mac * macs + e_byte * byts,
-        }
+def _cell(macs, byts, s_tok, e_mac, e_byte, static_w):
+    return {
+        "macs_per_token": macs,
+        "bytes_per_token": byts,
+        "s_per_token_bench": s_tok,
+        "j_per_token_mean": e_mac * macs + e_byte * byts + static_w * s_tok,
+    }
+
+
+def test_two_param_fit_recovers_when_static_is_zero():
+    cells = {
+        "a": _cell(1e9, 1e9, 0.0, 2e-12, 50e-12, 0.0),
+        "b": _cell(2e9, 1e9, 0.0, 2e-12, 50e-12, 0.0),
+        "c": _cell(1e9, 2e9, 0.0, 2e-12, 50e-12, 0.0),
+    }
     fit = fit_energy_constants(cells)
     assert fit["two_param"]["e_mac_pj"] == pytest.approx(2.0, rel=1e-6)
     assert fit["two_param"]["e_byte_pj"] == pytest.approx(50.0, rel=1e-6)
     assert fit["two_param"]["ss_res"] == pytest.approx(0.0, abs=1e-18)
-    assert fit["three_param"]["intercept_j"] == pytest.approx(0.0, abs=1e-9)
+    # all-zero time column: the 3-parameter model must decline, not blow up
+    assert fit["three_param"] == {"skipped": "no decode-time data in bench JSON"}
+
+
+def test_three_param_fit_recovers_static_power():
+    e_mac, e_byte, static_w = 2e-12, 50e-12, 0.5
+    cells = {
+        "a": _cell(1e9, 1e9, 0.30, e_mac, e_byte, static_w),
+        "b": _cell(1e9, 1e9, 0.10, e_mac, e_byte, static_w),
+        "c": _cell(1e9, 2e9, 0.15, e_mac, e_byte, static_w),
+        "d": _cell(2e9, 2e9, 0.08, e_mac, e_byte, static_w),
+    }
+    fit = fit_energy_constants(cells)
+    assert fit["three_param"]["e_mac_pj"] == pytest.approx(2.0, rel=1e-6)
+    assert fit["three_param"]["e_byte_pj"] == pytest.approx(50.0, rel=1e-6)
+    assert fit["three_param"]["static_w"] == pytest.approx(0.5, rel=1e-6)
+    assert fit["three_param"]["ss_res"] == pytest.approx(0.0, abs=1e-15)
+    assert fit["two_param"]["ss_res"] > 0.0
 
 
 def test_fit_rejects_underdetermined_input():
     with pytest.raises(ValueError):
-        fit_energy_constants({"only": {"macs_per_token": 1.0, "bytes_per_token": 1.0, "j_per_token_mean": 1.0}})
+        fit_energy_constants(
+            {"only": {"macs_per_token": 1.0, "bytes_per_token": 1.0,
+                      "j_per_token_mean": 1.0}}
+        )
 
 
 def test_run_analysis_end_to_end_and_append_only(tmp_path):
@@ -134,7 +161,8 @@ def test_run_analysis_end_to_end_and_append_only(tmp_path):
     analysis = run_analysis(raw, out)
     assert (out / "analysis.json").is_file()
     assert set(analysis["cells"]) == {"Q4_0_t1", "Q4_0_t4", "Q8_0_t4"}
-    assert "two_param" in analysis["fit"]
+    assert "e_mac_pj" in analysis["fit"]["two_param"]
+    assert "static_w" in analysis["fit"]["three_param"]
     with pytest.raises(ValueError, match="append-only"):
         run_analysis(raw, out)
 

@@ -11,13 +11,16 @@ Android 16, termux-api, 2026-08-14, while PLUGGED_AC):
   the sampler records enough to add it in analysis revisions).
 - The sysfs columns are permission-denied on this device and ignored.
 
-Method (pre-registered, LOGBOOK EXP-003b): trapezoid-integrate power
-over each cell window from events.csv, subtract the idle baseline
-power times duration, divide by generated tokens (128 per invocation,
-llama-bench -n 128 -r 1). Fit per-byte and per-MAC energies across
-cells by least squares; report residuals for both a 2-parameter and a
-3-parameter (adds an intercept) model. Interpretation belongs to the
-logbook, not this module.
+Method (pre-registered, LOGBOOK EXP-003b, amended before execution):
+trapezoid-integrate power over each cell window from events.csv,
+subtract the idle baseline power times duration, divide by generated
+tokens (512 per invocation, llama-bench -n 512 -r 1). Fit per-byte and
+per-MAC energies across cells by least squares; the 3-parameter model
+adds static power times decode time (s/token from the bench JSON
+avg_ts), which is identifiable because threads vary decode time at
+fixed bytes. Known limitation, documented: the window includes model
+load; -n 512 bounds that contamination to a few percent.
+Interpretation belongs to the logbook, not this module.
 """
 
 from __future__ import annotations
@@ -28,9 +31,9 @@ from typing import Any
 
 from .toml_model import QWEN25_1_5B
 
-TOKENS_PER_INVOCATION = 128
-# Average decode context in a -p 0 -n 128 run is about 64 tokens.
-_AVG_CTX = 64
+TOKENS_PER_INVOCATION = 512
+# Average decode context in a -p 0 -n 512 run is about 256 tokens.
+_AVG_CTX = 256
 
 
 def load_samples(path: Path) -> list[dict[str, Any]]:
@@ -144,7 +147,9 @@ def analyze_cells(samples, events, bench_dir: Path) -> dict[str, Any]:
         )
         duration_s = (event["end_ms"] - event["start_ms"]) / 1000.0
         rep = accum.setdefault(
-            key, {"net_j": [], "duration_s": [], "flags": [], "model_size": 0}
+            key,
+            {"net_j": [], "duration_s": [], "flags": [], "model_size": 0,
+             "s_per_token": 0.0},
         )
         rep["net_j"].append(joules - base_w * duration_s)
         rep["duration_s"].append(duration_s)
@@ -154,8 +159,17 @@ def analyze_cells(samples, events, bench_dir: Path) -> dict[str, Any]:
         if not rep["model_size"]:
             bench_files = sorted(bench_dir.glob(f"{quant}_t{threads}_rep*.json"))
             if bench_files:
-                tests = json.loads(bench_files[0].read_text(encoding="utf-8"))
-                rep["model_size"] = int(tests[0].get("model_size", 0))
+                first = json.loads(bench_files[0].read_text(encoding="utf-8"))
+                rep["model_size"] = int(first[0].get("model_size", 0))
+                ts_values = []
+                for bench_file in bench_files:
+                    entries = json.loads(bench_file.read_text(encoding="utf-8"))
+                    ts = entries[0].get("avg_ts")
+                    if ts:
+                        ts_values.append(float(ts))
+                rep["s_per_token"] = (
+                    1.0 / (sum(ts_values) / len(ts_values)) if ts_values else 0.0
+                )
     if not accum:
         raise ValueError("no cell windows found in events.csv")
     out: dict[str, Any] = {"baseline_power_w": base_w, "cells": {}}
@@ -173,6 +187,7 @@ def analyze_cells(samples, events, bench_dir: Path) -> dict[str, Any]:
             "j_per_token_mean": mean,
             "j_per_token_sd": var ** 0.5,
             "mean_duration_s": sum(rep["duration_s"]) / n,
+            "s_per_token_bench": rep["s_per_token"],
             "flags": rep["flags"],
             "macs_per_token": workload["macs"],
             "bytes_per_token": workload["bytes"],
@@ -181,19 +196,27 @@ def analyze_cells(samples, events, bench_dir: Path) -> dict[str, Any]:
 
 
 def fit_energy_constants(cells: dict[str, Any]) -> dict[str, Any]:
-    """Least squares for J/token = e_mac*MACs + e_byte*bytes (+ c)."""
+    """Least squares for J/token against per-token workload.
+
+    two_param:   J = e_mac*MACs + e_byte*bytes
+    three_param: J = e_mac*MACs + e_byte*bytes + static_w * s_per_token
+    The third column is bench-measured decode time, identifiable
+    because threads vary time at fixed bytes.
+    """
     rows = list(cells.values())
     if len(rows) < 3:
         raise ValueError("need at least three cells to fit")
 
-    def solve(with_intercept: bool) -> dict[str, Any]:
-        cols = 3 if with_intercept else 2
+    def solve(with_time: bool) -> dict[str, Any]:
+        if with_time and not any(r.get("s_per_token_bench", 0.0) for r in rows):
+            return {"skipped": "no decode-time data in bench JSON"}
+        cols = 3 if with_time else 2
         ata = [[0.0] * cols for _ in range(cols)]
         atb = [0.0] * cols
         for row in rows:
             x = [row["macs_per_token"], row["bytes_per_token"]]
-            if with_intercept:
-                x.append(1.0)
+            if with_time:
+                x.append(row.get("s_per_token_bench", 0.0))
             y = row["j_per_token_mean"]
             for i in range(cols):
                 atb[i] += x[i] * y
@@ -204,8 +227,8 @@ def fit_energy_constants(cells: dict[str, Any]) -> dict[str, Any]:
         ss_res = 0.0
         for key, row in cells.items():
             x = [row["macs_per_token"], row["bytes_per_token"]]
-            if with_intercept:
-                x.append(1.0)
+            if with_time:
+                x.append(row.get("s_per_token_bench", 0.0))
             pred = sum(c * v for c, v in zip(coef, x))
             residuals[key] = row["j_per_token_mean"] - pred
             ss_res += residuals[key] ** 2
@@ -215,8 +238,8 @@ def fit_energy_constants(cells: dict[str, Any]) -> dict[str, Any]:
             "residual_j": residuals,
             "ss_res": ss_res,
         }
-        if with_intercept:
-            result["intercept_j"] = coef[2]
+        if with_time:
+            result["static_w"] = coef[2]
         return result
 
     return {"two_param": solve(False), "three_param": solve(True)}

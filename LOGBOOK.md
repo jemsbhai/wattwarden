@@ -540,3 +540,25 @@ structure-validated estimates with an explicit transfer note.
 
 ### Results / Observations / Interpretation
 Pending.
+
+---
+
+## Addendum (2026-08-15, before any execution), re: EXP-003b protocol
+
+Two amendments, both triggered by the analyzer's own test gate before
+any measurement ran:
+
+1. Tokens per invocation change from 128 to 512 (llama-bench -p 0
+   -n 512 -r 1). Reason: the measurement window brackets the whole
+   invocation including model load from flash; at -n 128 load energy
+   is a material fraction, at -n 512 decode dominates and the load
+   contamination is bounded to a few percent. It remains a documented
+   limitation. Average decode context for the workload model becomes
+   ~256 tokens.
+2. The registered fit said per-byte and per-MAC energies. With one
+   model, MACs per token are constant across all cells, so a naive
+   third parameter (intercept) is perfectly collinear and singular;
+   the test suite caught this. The 3-parameter model is defined as
+   static power times bench-measured decode time per token (avg_ts),
+   identifiable because threads vary decode time at fixed bytes. The
+   2-parameter model is reported alongside it.
