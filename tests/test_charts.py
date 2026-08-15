@@ -22,6 +22,9 @@ def test_all_figures_render(tmp_path):
         "fig3_cost_per_mtok.png",
         "fig4_budget_burndown.png",
         "fig5_bandwidth_ceiling.png",
+        "fig6_phone_energy_per_token.png",
+        "fig7_phone_speed_energy_tradeoff.png",
+        "fig8_fastest_not_cheapest.png",
     ]
     for path in tmp_path.glob("*.png"):
         assert path.stat().st_size > 10_000  # a real rendered image, not a stub

@@ -62,6 +62,11 @@ def load_exp001() -> dict[str, dict[str, dict[str, float]]]:
     return json.loads(path.read_text(encoding="utf-8"))["cells"]
 
 
+def load_exp003b() -> dict[str, dict]:
+    path = REPO / "experiments" / "exp_003b_phone_v2" / "analysis.json"
+    return json.loads(path.read_text(encoding="utf-8"))["cells"]
+
+
 def fig_thread_scaling(table, outdir: Path) -> Path:
     fig, ax = plt.subplots(figsize=(8, 5))
     threads = [1, 2, 4, 8, 16]
@@ -238,6 +243,109 @@ def fig_bandwidth(table, outdir: Path) -> Path:
     return out
 
 
+def fig_phone_energy(cells, outdir: Path) -> Path:
+    fig, ax = plt.subplots(figsize=(8, 4.8))
+    threads = [1, 4, 8]
+    width = 0.38
+    for offset, quant in ((-width / 2, "Q4_0"), (width / 2, "Q8_0")):
+        xs, ys, errs = [], [], []
+        for i, t in enumerate(threads):
+            cell = cells.get(f"{quant}_t{t}")
+            if not cell:
+                continue
+            xs.append(i + offset)
+            ys.append(cell["j_per_token_mean"])
+            errs.append(cell["j_per_token_sd"])
+        bars = ax.bar(
+            xs, ys, width=width, yerr=errs, capsize=4,
+            color=QUANT_COLOR[quant], label=quant,
+        )
+        ax.bar_label(bars, fmt="%.2f", fontsize=8, padding=2)
+    ax.set_xticks(range(len(threads)))
+    ax.set_xticklabels([f"t{t}" for t in threads])
+    ax.set_xlabel("generation threads")
+    ax.set_ylabel("energy per generated token, J (measured)")
+    ax.set_title(
+        "On-device energy rises with every added cluster\n"
+        "(Pixel 8 Pro battery telemetry, Qwen2.5-1.5B, EXP-003b v2)"
+    )
+    ax.legend()
+    ax.grid(axis="y", alpha=0.3)
+    fig.tight_layout()
+    out = outdir / "fig6_phone_energy_per_token.png"
+    fig.savefig(out, dpi=200)
+    plt.close(fig)
+    return out
+
+
+def fig_phone_tradeoff(cells, outdir: Path) -> Path:
+    fig, ax = plt.subplots(figsize=(8, 4.8))
+    for key, cell in sorted(cells.items()):
+        s_tok = cell.get("s_per_token_bench") or 0.0
+        if s_tok <= 0:
+            continue
+        x = 1.0 / s_tok
+        y = cell["j_per_token_mean"]
+        ax.errorbar(
+            x, y, yerr=cell["j_per_token_sd"], fmt="o", capsize=4,
+            color=QUANT_COLOR[cell["quant"]],
+        )
+        ax.annotate(
+            f"{cell['quant']} t{cell['threads']}",
+            (x, y), textcoords="offset points", xytext=(8, 4), fontsize=9,
+        )
+    ax.set_xlabel("decode speed, tok/s (llama-bench)")
+    ax.set_ylabel("energy per token, J (measured)")
+    ax.set_title(
+        "The speed-energy tradeoff on Tensor G3: faster configurations\n"
+        "cost more joules per token (EXP-003b v2)"
+    )
+    ax.grid(alpha=0.3)
+    fig.tight_layout()
+    out = outdir / "fig7_phone_speed_energy_tradeoff.png"
+    fig.savefig(out, dpi=200)
+    plt.close(fig)
+    return out
+
+
+def fig_fastest_not_cheapest(table, cells, outdir: Path) -> Path:
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4.4))
+    threads = [1, 2, 4, 8, 16]
+    ys = [table["Q4_0"][t]["tg"] for t in threads]
+    axes[0].plot(threads, ys, marker="o", color=QUANT_COLOR["Q4_0"])
+    axes[0].scatter([8], [table["Q4_0"][8]["tg"]], marker="*", s=240,
+                    color="#d62728", zorder=5, label="best throughput")
+    axes[0].set_xscale("log", base=2)
+    axes[0].set_xticks(threads)
+    axes[0].set_xticklabels([str(t) for t in threads])
+    axes[0].set_xlabel("threads")
+    axes[0].set_ylabel("served tok/s")
+    axes[0].set_title("Axion server: throughput peaks at t8\n(EXP-002)")
+    axes[0].legend(fontsize=8)
+    axes[0].grid(alpha=0.3)
+    p_threads = [1, 4, 8]
+    p_ys = [cells[f"Q4_0_t{t}"]["j_per_token_mean"] for t in p_threads]
+    p_err = [cells[f"Q4_0_t{t}"]["j_per_token_sd"] for t in p_threads]
+    axes[1].errorbar(p_threads, p_ys, yerr=p_err, marker="o", capsize=4,
+                     color=QUANT_COLOR["Q4_0"])
+    axes[1].scatter([1], [p_ys[0]], marker="*", s=240, color="#2ca02c",
+                    zorder=5, label="lowest energy")
+    axes[1].set_xscale("log", base=2)
+    axes[1].set_xticks(p_threads)
+    axes[1].set_xticklabels([str(t) for t in p_threads])
+    axes[1].set_xlabel("threads")
+    axes[1].set_ylabel("J per token")
+    axes[1].set_title("Pixel 8 Pro: energy lowest at t1\n(EXP-003b, Q4_0)")
+    axes[1].legend(fontsize=8)
+    axes[1].grid(alpha=0.3)
+    fig.suptitle("Fastest is not cheapest: the optimum flips across Arm targets")
+    fig.tight_layout()
+    out = outdir / "fig8_fastest_not_cheapest.png"
+    fig.savefig(out, dpi=200)
+    plt.close(fig)
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--outdir", default=str(REPO / "charts"))
@@ -249,12 +357,16 @@ def main(argv: list[str] | None = None) -> int:
     outdir.mkdir(parents=True, exist_ok=True)
     table = load_exp002()
     cells = load_exp001()
+    phone = load_exp003b()
     written = [
         fig_thread_scaling(table, outdir),
         fig_kleidiai(cells, outdir),
         fig_cost(table, args.usd_per_hour, args.cpu_count, outdir),
         fig_burndown(outdir),
         fig_bandwidth(table, outdir),
+        fig_phone_energy(phone, outdir),
+        fig_phone_tradeoff(phone, outdir),
+        fig_fastest_not_cheapest(table, phone, outdir),
     ]
     for path in written:
         print("wrote", path)

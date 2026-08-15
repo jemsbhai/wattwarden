@@ -6,6 +6,10 @@ Format follows Keep a Changelog; versioning follows SemVer.
 ## [Unreleased]
 
 ### Added
+- Phone charts (fig6..fig8): measured J/token with error bars, the
+  speed-energy tradeoff scatter, and the two-panel fastest-is-not-
+  cheapest contrast between Axion throughput and Pixel energy; all
+  rendered from the committed EXP-003b v2 analysis artifact.
 - EXP-003b completed: first calibrated ArmCpuProfile (tensor-g3,
   Pixel 8 Pro battery telemetry; e_byte 88.3 pJ, e_mac 84.6 pJ,
   system-level). Analyzer v2 with boundary-extended integration and
