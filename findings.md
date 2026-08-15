@@ -50,6 +50,15 @@ quant-independent serial floor plus parallel term (time = A + B/t,
 R^2 >= 0.999) with no ceiling term required, so 150 GB/s is
 consistent with a ceiling but not demonstrated as one below t16.
 
+On-device energy (EXP-003b, Pixel 8 Pro, Tensor G3): the TOML meter
+now carries its first calibrated profile, fitted from battery
+telemetry: 88.3 pJ per DRAM byte and 84.6 pJ per MAC at system level.
+Measured cost sits near 0.2 J per generated token for Qwen2.5-1.5B
+Q4_0, and energy per token rises monotonically with thread count
+(resolved at t8): on big.LITTLE silicon, the fastest configuration is
+not the cheapest, the mirror image of the Axion serving story where
+t8 was the throughput and cost winner.
+
 ---
 
 ## Raw Findings Log
@@ -106,6 +115,20 @@ streaming. The cross-quant bytes regression is unidentifiable (R^2
 residual at every t confirms costlier kernels. The ~150 GB/s figure
 downgrades from ceiling to approached upper range. Fit artifacts:
 experiments/exp_003_time_fit/.
+
+### 2026-08-15 -- EXP-003b: first calibrated profile, from a phone
+
+**Key result:** on-device battery telemetry on the Pixel 8 Pro
+(Tensor G3) yields the meter's first calibrated=True profile: e_byte
+88.3 pJ/byte, e_mac 84.6 pJ/MAC (system-level, two-parameter fit,
+round-trip coherent to ~1% at the t4 workload). Measured J/token,
+Qwen2.5-1.5B: Q4_0 0.193 (t1), 0.213 (t4), 0.275 (t8); Q8_0 0.282
+(t4), 0.317 (t8). Energy per token rises with every added cluster
+(resolved at t8): fastest is not cheapest on this SoC. One prediction
+was rescued from a false refutation by the coverage audit and
+estimator correction; a third pre-registered prediction (t4 beats t1)
+is refuted as stated, with t1 and t4 statistically indistinguishable.
+Full narrative, deviations, and limitations: LOGBOOK EXP-003b.
 
 ### 2026-08-14 -- Kernel identity: repacked Q4_0 GEMV owns decode
 

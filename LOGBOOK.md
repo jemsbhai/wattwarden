@@ -539,7 +539,98 @@ structure-validated estimates with an explicit transfer note.
   cluster's contribution is not paying for its power.
 
 ### Results / Observations / Interpretation
-Pending.
+Completed 2026-08-15. Raw: experiments/exp_003b_phone_raw/ (merged
+two-part session); mechanical outputs: exp_003b_phone (v1, superseded)
+and exp_003b_phone_v2 (the record).
+
+Session narrative and deviations, in order:
+1. Part 1 froze during the Q8_0 t4 rep-1 cooldown. Root cause: Android
+   suspended the Termux:API companion app (a Ctrl+C traceback caught
+   the script blocked inside a termux-battery-status read). Mitigation
+   for part 2: wake lock plus battery-unrestricted for Termux and
+   Termux:API. All Q4_0 cells and Q8_0 t4 rep 1 completed and were
+   marked before the freeze.
+2. Part 2 (exp003b_patch.sh) reran Q8_0 t4 x5 and Q8_0 t8 x5 with its
+   own pre and post baselines. Q8_0 t4 therefore carries n=6 (the
+   part-1 orphan included; its window predates the freeze).
+3. Parts merged by scripts/merge_exp003b_parts.py after a PowerShell
+   redirection re-encoded the first merge as UTF-16 (loaders hardened
+   to utf-8-sig).
+4. Coverage audit (scripts/audit_exp003b_coverage.py) revealed the
+   sampler never reached 1 Hz anywhere: ~0.46 Hz idle (five python
+   subprocess spawns per sample plus the API round trip) degrading to
+   0.14..0.32 under load as the spawns competed with llama-bench.
+   This was a sampler design flaw, not Doze.
+5. The audit exposed a v1 estimator flaw: interior-only trapezoid
+   dropped edge seconds of gross energy while baseline subtraction
+   charged full duration, a systematic undercount worst in the
+   sparsest cells. v2 extends first and last sample power to the
+   window boundaries (single-sample windows: mean power times
+   duration). v1 outputs are retained as the record of the correction.
+
+Final measured table (v2; J per generated token, 512 tokens per
+invocation; baseline 4.909 W):
+
+| cell | n | J/token | sd | mean coverage |
+|---|---|---|---|---|
+| Q4_0 t1 | 5 | 0.1925 | 0.0608 | 0.95 |
+| Q4_0 t4 | 5 | 0.2126 | 0.0174 | 0.76 |
+| Q4_0 t8 | 5 | 0.2750 | 0.0388 | 0.93 |
+| Q8_0 t4 | 6 | 0.2823 | 0.0313 | 0.92 |
+| Q8_0 t8 | 5 | 0.3173 | 0.0284 | 0.94 |
+
+Prediction outcomes:
+1. CONFIRMED, after correction: Q4_0 t4 = 0.213 J/token, inside the
+   pre-registered 0.2 to 1.0 band. The v1 value (0.122) sat below the
+   band purely through the integration undercount: the audit rescued
+   a correct prediction from a false refutation.
+2. CONFIRMED: Q8_0 costs more than Q4_0 at both thread levels (0.282
+   vs 0.213 at t4; 0.317 vs 0.275 at t8).
+3. REFUTED as stated: t4 is not more efficient than t1. Point
+   estimates reverse (t1 0.193 vs t4 0.213) but differ by only ~0.7
+   standard errors against t1's wide spread: t1 and t4 are
+   statistically indistinguishable. The monotone rise IS resolved at
+   t8 (0.275, clearly above both): the registered rider engages, the
+   A510 cluster does not pay for its power, and more broadly every
+   added cluster on Tensor G3 buys speed at an energy-per-token cost.
+   Fastest is not cheapest on this SoC, the mirror image of the Axion
+   throughput story.
+
+Fit (J/token = e_mac x MACs + e_byte x bytes, measured GGUF bytes):
+- Two-parameter, ADOPTED: e_byte 88.3 pJ/byte, e_mac 84.6 pJ/MAC
+  (single coefficient shared across quants by design), ss_res 0.0043.
+  These are SYSTEM-LEVEL effective constants: cache, fabric, DRAM
+  controller, and active-idle overhead fold into the per-op prices.
+- Three-parameter (adds static power times bench decode time):
+  static_w = -0.244 W, unphysical sign for a negligible ss_res gain;
+  REJECTED as overfit on five cells.
+- Residual structure: Q4_0 t8 at +0.048 J is the outlier in both
+  fits: cluster-topology energy that the linear byte/MAC form cannot
+  express. Named as a model limitation and a finding.
+- Round-trip coherence: the calibrated profile predicts ~0.210 J/token
+  for the t4-shaped workload vs 0.213 measured.
+
+Limitations, stated:
+- Baseline 4.909 W is high for minimum-brightness idle; thermally
+  elevated late baselines imply a systematic on net cell energy of
+  order +/-0.02 J/token on the smallest cells, comparable to the
+  reported sds.
+- Cell windows include model load; -n 512 bounds the contamination to
+  a few percent (pre-execution amendment).
+- Sampler ceiling ~0.46 Hz with load-dependent starvation (min 3
+  samples in a window); v2 boundary extension addresses the energy
+  accounting, and a single-process sampler logging charge_counter is
+  the named improvement (no coulomb cross-check was possible: the
+  column was never recorded).
+- One model, one device, Q4_0 and Q8_0 only; Q4_K_M is unmeasured on
+  this target and the profile deliberately excludes it.
+
+Outcome: TENSOR_G3 ArmCpuProfile committed with calibrated=True and
+the constants above (static power folded into per-op prices;
+p_static_w 0). Neoverse profiles remain uncalibrated
+structure-validated estimates. The pre-registered outcome statement is
+met: the meter carries its first fully calibrated Arm profile,
+measured on-device.
 
 ---
 

@@ -19,17 +19,19 @@ REPO = Path(__file__).resolve().parents[1]
 
 def main() -> int:
     raw = REPO / "experiments" / "exp_003b_phone_raw"
-    out = REPO / "experiments" / "exp_003b_phone"
+    out_name = sys.argv[1] if len(sys.argv) > 1 else "exp_003b_phone"
+    out = REPO / "experiments" / out_name
     analysis = run_analysis(raw, out)
     print(f"baseline power: {analysis['baseline_power_w']:.3f} W")
-    print("| cell | n | J/token mean | sd | duration s | flags |")
-    print("|---|---|---|---|---|---|")
+    print("| cell | n | J/token mean | sd | duration s | min samples | coverage | flags |")
+    print("|---|---|---|---|---|---|---|---|")
     for key in sorted(analysis["cells"]):
         c = analysis["cells"][key]
-        flags = ";".join(c["flags"]) if c["flags"] else ""
+        flags = ";".join(sorted(set(c["flags"]))) if c["flags"] else ""
         print(
             f"| {key} | {c['n']} | {c['j_per_token_mean']:.4f} "
-            f"| {c['j_per_token_sd']:.4f} | {c['mean_duration_s']:.1f} | {flags} |"
+            f"| {c['j_per_token_sd']:.4f} | {c['mean_duration_s']:.1f} "
+            f"| {c['min_rep_samples']} | {c['mean_coverage']:.2f} | {flags} |"
         )
     print(json.dumps(analysis["fit"], indent=2))
     return 0

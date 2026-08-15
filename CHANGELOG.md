@@ -6,6 +6,11 @@ Format follows Keep a Changelog; versioning follows SemVer.
 ## [Unreleased]
 
 ### Added
+- EXP-003b completed: first calibrated ArmCpuProfile (tensor-g3,
+  Pixel 8 Pro battery telemetry; e_byte 88.3 pJ, e_mac 84.6 pJ,
+  system-level). Analyzer v2 with boundary-extended integration and
+  per-window coverage after the audit exposed a v1 undercount;
+  coverage audit and part-merge scripts committed.
 - EXP-003b phone tooling: Termux battery sampler and measurement
   block (protocol-enforcing: refuses while charging, thermal readings
   per rep), provisioning script, and the battery-energy analyzer

@@ -1,0 +1,8 @@
+captured_utc: 2026-08-15T00:52:28Z
+llama_cpp_sha: 9d57ce456c94d241dde672b2db9cf18879766568
+device: Pixel 8 Pro / 16
+uname: Linux localhost 6.1.145-android14-11-gfa1d6308d1fe-ab14691759 #1 SMP PREEMPT Fri Jan  9 16:33:46 UTC 2026 aarch64 Android
+clang: clang version 21.1.8
+nproc: 9
+-- cpuinfo features --
+Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 sm3 sm4 asimddp sha512 sve asimdfhm dit uscat ilrcpc flagm sb paca pacg dcpodp sve2 sveaes svepmull svebitperm svesha3 svesm4 flagm2 frint svei8mm svebf16 i8mm bti
