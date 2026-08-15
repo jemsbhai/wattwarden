@@ -480,3 +480,63 @@ will use an Android Arm SoC via the battery energy counter APIs
 (BatteryManager ENERGY_COUNTER, or current times voltage where the
 counter is absent), the same instrument the mobile entry's battery
 governor uses. Device model to be recorded at registration time.
+
+---
+
+## Addendum (2026-08-14), re: EXP-001 original N1 registration
+
+The original EXP-001 entry (Ampere A1, Neoverse N1) is formally closed
+as superseded: the ablation executed on Axion V2 under the final
+protocol addendum, with results recorded above. The N1 leg remains
+deferred-optional, tied to the Always Free A1 endpoint decision; if it
+runs, it will be registered as its own experiment, not as EXP-001.
+
+---
+
+## EXP-003b: Energy anchoring on Pixel 8 Pro battery telemetry
+
+**Date:** planned 2026-08-14
+**Researcher:** Muntaser Syed
+**Type:** hardware measurement (on-device)
+**Status:** planned
+
+### Instrument
+Google Pixel 8 Pro (Tensor G3: 1x Cortex-X3, 4x A715, 4x A510),
+Android 16, Termux (F-Droid build) with termux-api battery JSON;
+/sys/class/power_supply/battery current_now and voltage_now as the
+secondary source if readable. Sampler logs timestamp, current,
+voltage, temperature at 1 Hz. Discharge sign convention recorded at
+setup.
+
+### Conditions (pre-registered)
+llama-bench, -p 0 -n 128, built in Termux at a recorded commit:
+- Q4_0 x threads {1, 4, 8}
+- Q8_0 x threads {4, 8}
+Five repetitions per cell. Two quants vary bytes at fixed MACs, which
+separates per-byte from per-MAC energy in the fit.
+
+### Controls
+Unplugged (charging invalidates drain measurement), airplane mode on,
+minimum fixed brightness with screen kept on (screen power lands in
+baseline), 120 s idle baseline before and after the block, 90 s
+cooldown between repetitions, battery temperature recorded per sample.
+Guard: flag any repetition where temperature rises more than 6 C over
+block start; do not silently discard.
+
+### Analysis
+Net power = run power minus idle baseline mean; energy per token =
+integral of V times I over the run, net, divided by tokens generated.
+Fit e_dram_per_byte and e_mac from the five cells against known
+per-token bytes and MACs; report residuals. Outcome: a calibrated
+tensor-g3 profile (calibrated=True); Neoverse profiles remain
+structure-validated estimates with an explicit transfer note.
+
+### Predictions (before any measurement)
+- J/token for 1.5B Q4_0 at t4 lands in 0.2 to 1.0 J.
+- Q8_0 costs more J/token than Q4_0 at equal threads.
+- t4 is more energy-efficient per token than t1 (throughput gain
+  outpaces power gain). If t8 loses efficiency versus t4, the A510
+  cluster's contribution is not paying for its power.
+
+### Results / Observations / Interpretation
+Pending.
