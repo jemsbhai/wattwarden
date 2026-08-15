@@ -127,9 +127,9 @@ README; the sweep, advisor, and governed agent each run with one command.
 ## What's next
 
 EXP-003b calibrates the energy profile against a host with real power
-telemetry: an Android Arm SoC using the battery energy counter APIs
-(the same instrument the planned battery governor uses), flipping
-predicted joules from relative to absolute; the time-structure half,
+telemetry: an Android Arm SoC (Pixel 8 Pro, Tensor G3) measured through
+its battery telemetry, flipping predicted joules from relative to
+absolute; the time-structure half,
 EXP-003a, is already completed and committed. pollard 1.5.1 already ships an MCP registry
 bridge (registry_from_mcp), so the governed agent's next milestone is
 discovering jsonld-ex's 53-tool MCP server under the same joule budget.
