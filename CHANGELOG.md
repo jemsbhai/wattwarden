@@ -6,6 +6,12 @@ Format follows Keep a Changelog; versioning follows SemVer.
 ## [Unreleased]
 
 ### Added
+- EXP-003b phone tooling: Termux battery sampler and measurement
+  block (protocol-enforcing: refuses while charging, thermal readings
+  per rep), provisioning script, and the battery-energy analyzer
+  (phone_energy.py) with locked unit rules from the Pixel 8 Pro
+  calibration paste, trapezoid integration, baseline netting,
+  charging-sample flagging, and 2- and 3-parameter energy fits.
 - EXP-003a time-structure calibration (calibrate.py): closed-form
   fits of decode time against model bytes (effective bandwidth per
   thread level) and against inverse threads (per-quant floor vs the
