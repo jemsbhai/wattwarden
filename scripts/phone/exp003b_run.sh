@@ -24,6 +24,8 @@ if [ "${STATUS}" != "DISCHARGING" ] && [ "${STATUS}" != "NOT_CHARGING" ]; then
 fi
 
 mkdir -p "${OUT}"
+termux-wake-lock 2>/dev/null || true
+trap 'termux-wake-unlock 2>/dev/null || true' EXIT
 cp "${BASE}/environment.txt" "${OUT}/environment.txt" 2>/dev/null || true
 SAMPLES="${OUT}/samples.csv"
 EVENTS="${OUT}/events.csv"
@@ -37,7 +39,7 @@ mark() { echo "$1,$2,$3,$4" >> "${EVENTS}"; }
 
 bash "$(dirname "$0")/exp003b_sampler.sh" "${SAMPLES}" &
 SAMPLER_PID=$!
-trap 'kill ${SAMPLER_PID} 2>/dev/null || true' EXIT
+trap 'kill ${SAMPLER_PID} 2>/dev/null || true; termux-wake-unlock 2>/dev/null || true' EXIT
 sleep 3
 
 echo "== baseline (${BASELINE_S}s idle, screen on, do not touch) =="
